@@ -60,6 +60,105 @@ data: [{"path": "/tmp/gradio/bcb143f492b1c9a6dbde512557541e62f090bca083356be0f82
 
 You can download the file by extending the URL prefix "https://thatupiso-podcastfy-ai-demo.hf.space/gradio_a/gradio_api/file=" with the path to the file in variable `path`. (Note: The variable "url" above has a bug introduced by Gradio, so please ignore it.)
 
+## FastAPI Endpoint (Direct REST API)
+
+Podcastfy also provides a direct FastAPI endpoint for podcast generation that supports multiple input types.
+
+### Available Input Types
+
+The API supports three types of input sources:
+1. **URLs** - Process content from web pages
+2. **Direct Text** - Convert your own text content into a podcast
+3. **Topic** - Generate a podcast about a specific topic (uses AI to research and create content)
+
+### Endpoint: `/generate`
+
+**Method:** `POST`  
+**URL:** `http://localhost:8080/generate`
+
+### Request Body Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| urls | array | No* | List of URLs to process |
+| text | string | No* | Direct text input for podcast generation |
+| topic | string | No* | Topic to generate podcast content about |
+| openai_key | string | No | OpenAI API key |
+| google_key | string | No | Google Gemini API key |
+| elevenlabs_key | string | No | ElevenLabs API key |
+| tts_model | string | No | TTS model ("openai", "elevenlabs", "edge", "gemini") |
+| creativity | number | No | Creativity level (0-1) |
+| conversation_style | array | No | Style descriptors (e.g. ["engaging", "informative"]) |
+| roles_person1 | string | No | Role of first speaker |
+| roles_person2 | string | No | Role of second speaker |
+| dialogue_structure | array | No | Structure (e.g. ["Introduction", "Content", "Conclusion"]) |
+| name | string | No | Podcast name |
+| tagline | string | No | Podcast tagline |
+| output_language | string | No | Output language |
+| user_instructions | string | No | Custom instructions |
+| engagement_techniques | array | No | Engagement techniques |
+| voices | object | No | Voice selection {"question": "voice1", "answer": "voice2"} |
+| is_long_form | boolean | No | Generate long-form content |
+
+*At least one of `urls`, `text`, or `topic` must be provided.
+
+### Example Requests
+
+#### 1. Generate from URLs
+```bash
+curl -X POST http://localhost:8080/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": ["https://example.com/article"],
+    "openai_key": "your-openai-key",
+    "tts_model": "openai",
+    "name": "Tech News",
+    "creativity": 0.7
+  }'
+```
+
+#### 2. Generate from Direct Text
+```bash
+curl -X POST http://localhost:8080/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Artificial Intelligence is transforming industries worldwide. Machine learning algorithms can now process vast amounts of data to identify patterns and make predictions.",
+    "openai_key": "your-openai-key",
+    "tts_model": "openai",
+    "name": "AI Insights",
+    "conversation_style": ["educational", "accessible"],
+    "roles_person1": "AI researcher",
+    "roles_person2": "curious journalist"
+  }'
+```
+
+#### 3. Generate from Topic
+```bash
+curl -X POST http://localhost:8080/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "The future of renewable energy",
+    "google_key": "your-gemini-key",
+    "tts_model": "openai",
+    "name": "Green Future",
+    "conversation_style": ["informative", "optimistic"],
+    "creativity": 0.6
+  }'
+```
+
+### Response Format
+```json
+{
+  "audioUrl": "/audio/podcast_abc123.mp3"
+}
+```
+
+Use the `/audio/{filename}` endpoint to download the generated audio file.
+
+---
+
+## Gradio API (Legacy)
+
 ### Parameter Details
 | Index | Parameter | Type | Description |
 |-------|-----------|------|-------------|

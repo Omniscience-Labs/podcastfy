@@ -48,8 +48,46 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 
 @app.post("/generate")
 async def generate_podcast_endpoint(data: dict):
-    """"""
+    """
+    Generate a podcast from URLs, direct text input, or topic.
+    
+    Expected data format:
+    {
+        "urls": ["https://example.com"],  # Optional: List of URLs to process
+        "text": "Your direct text input",  # Optional: Direct text input
+        "topic": "Your topic here",  # Optional: Topic to generate content about
+        "openai_key": "your-openai-key",
+        "google_key": "your-google-key", 
+        "elevenlabs_key": "your-elevenlabs-key",
+        "tts_model": "openai",  # openai, elevenlabs, edge, or gemini
+        "creativity": 0.7,
+        "conversation_style": ["engaging", "informative"],
+        "roles_person1": "host",
+        "roles_person2": "expert",
+        "dialogue_structure": ["Introduction", "Main Content", "Conclusion"],
+        "name": "Podcast Name",
+        "tagline": "Podcast Tagline",
+        "output_language": "English",
+        "user_instructions": "Custom instructions",
+        "engagement_techniques": ["questions", "examples"],
+        "voices": {"question": "voice1", "answer": "voice2"},
+        "is_long_form": false
+    }
+    
+    At least one of 'urls', 'text', or 'topic' must be provided.
+    """
     try:
+        # Validate input sources
+        urls = data.get('urls', [])
+        text = data.get('text')
+        topic = data.get('topic')
+        
+        if not urls and not text and not topic:
+            raise HTTPException(
+                status_code=400, 
+                detail="At least one input source must be provided: 'urls', 'text', or 'topic'"
+            )
+
         # Set environment variables
         os.environ['OPENAI_API_KEY'] = data.get('openai_key')
         os.environ['GEMINI_API_KEY'] = data.get('google_key')
@@ -98,7 +136,9 @@ async def generate_podcast_endpoint(data: dict):
 
         # Generate podcast
         result = generate_podcast(
-            urls=data.get('urls', []),
+            urls=urls,
+            text=text,
+            topic=topic,
             conversation_config=conversation_config,
             tts_model=tts_model,
             longform=bool(data.get('is_long_form', False)),
