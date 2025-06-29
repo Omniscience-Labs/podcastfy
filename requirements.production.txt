@@ -1,0 +1,45 @@
+# Production-specific dependencies for Podcastfy API
+
+# Database
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Redis
+redis==5.0.1
+hiredis==2.3.2
+
+# S3/Object Storage
+boto3==1.34.11
+botocore==1.34.11
+
+# Background Tasks
+celery==5.3.4
+flower==2.0.1
+kombu==5.3.4
+
+# API Framework
+uvicorn[standard]==0.25.0
+gunicorn==21.2.0
+
+# Monitoring & Observability
+prometheus-fastapi-instrumentator==6.1.0
+sentry-sdk[fastapi]==1.39.1
+python-json-logger==2.0.7
+
+# Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Performance
+orjson==3.9.10
+ujson==5.9.0
+msgpack==1.0.7
+
+# Testing (for production validation)
+httpx==0.25.2
+pytest-asyncio==0.23.2
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.5.3 

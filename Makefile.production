@@ -1,0 +1,156 @@
+# Makefile for Podcastfy Production Deployment
+
+.PHONY: help build up down restart logs status clean backup test deploy monitor
+
+# Default environment file
+ENV_FILE ?= .env.production
+COMPOSE_FILE = docker-compose.production.yml
+
+help: ## Show this help message
+	@echo "Podcastfy Production Deployment Commands:"
+	@echo ""
+	@awk 'BEGIN {FS = ":.*##"; printf "\033[36m%-20s\033[0m %s\n", "Command", "Description"} /^[a-zA-Z_-]+:.*?##/ { printf "\033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+build: ## Build all Docker images
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) build
+
+up: ## Start all services
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) up -d
+
+down: ## Stop all services
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) down
+
+restart: ## Restart all services
+	@make down
+	@make up
+
+logs: ## View logs (use SERVICE=name to filter)
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) logs -f $(SERVICE)
+
+status: ## Show service status
+	@echo "Service Status:"
+	@docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) ps
+	@echo ""
+	@echo "Health Checks:"
+	@curl -s http://localhost/health | jq . || echo "API not responding"
+
+scale-api: ## Scale API instances (use COUNT=n)
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) up -d --scale api=$(COUNT)
+
+scale-workers: ## Scale Celery workers (use COUNT=n)
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) up -d --scale worker=$(COUNT)
+
+migrate: ## Run database migrations
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) exec api1 python -m alembic upgrade head
+
+backup-db: ## Backup PostgreSQL database
+	@mkdir -p backups
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) exec postgres pg_dump -U podcastfy podcastfy | gzip > backups/postgres_$(shell date +%Y%m%d_%H%M%S).sql.gz
+	@echo "Database backed up to backups/postgres_$(shell date +%Y%m%d_%H%M%S).sql.gz"
+
+backup-files: ## Backup MinIO/S3 files
+	@mkdir -p backups/files
+	docker run --rm -v $(PWD)/backups/files:/backup --network podcastfy-network minio/mc mirror minio/podcastfy /backup/
+
+restore-db: ## Restore database from backup (use BACKUP_FILE=path)
+	gunzip < $(BACKUP_FILE) | docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) exec -T postgres psql -U podcastfy podcastfy
+
+test-api: ## Run API tests
+	@echo "Testing API endpoints..."
+	@curl -s -X GET http://localhost/health | jq .
+	@echo ""
+	@echo "Testing with demo API key..."
+	@curl -s -X GET http://localhost/api/v1/stats -H "Authorization: Bearer $(shell grep DEMO_API_KEY $(ENV_FILE) | cut -d'=' -f2)" | jq .
+
+monitor: ## Open monitoring dashboards
+	@echo "Opening monitoring dashboards..."
+	@echo "Grafana: http://localhost:3000 (admin/admin)"
+	@echo "Flower: http://localhost:5555"
+	@echo "MinIO: http://localhost:9001"
+	@echo "Prometheus: http://localhost:9090"
+
+clean: ## Clean up unused resources
+	docker system prune -f
+	docker volume prune -f
+
+reset: ## Reset entire deployment (WARNING: Deletes all data!)
+	@echo "WARNING: This will delete all data!"
+	@read -p "Are you sure? (yes/no) " confirm; \
+	if [ "$$confirm" = "yes" ]; then \
+		make down; \
+		docker volume rm -f podcastfy_postgres_data podcastfy_redis_data podcastfy_minio_data; \
+		echo "All data deleted."; \
+	else \
+		echo "Cancelled."; \
+	fi
+
+deploy: ## Full deployment sequence
+	@echo "Starting full deployment..."
+	@make build
+	@make up
+	@sleep 10
+	@make migrate
+	@make status
+	@echo "Deployment complete!"
+
+update: ## Update deployment with latest code
+	@echo "Updating deployment..."
+	git pull origin main
+	@make build
+	@make restart
+	@make migrate
+	@echo "Update complete!"
+
+ssl-setup: ## Setup SSL certificates with Let's Encrypt
+	@read -p "Enter your domain name: " domain; \
+	docker run -it --rm \
+		-v $(PWD)/ssl:/etc/letsencrypt \
+		-p 80:80 \
+		certbot/certbot certonly \
+		--standalone \
+		--agree-tos \
+		--non-interactive \
+		--email admin@$$domain \
+		-d $$domain
+
+generate-api-key: ## Generate a new API key
+	@python -c "import secrets; print(f'API Key: pk_{secrets.token_urlsafe(32)}')"
+
+db-shell: ## Open PostgreSQL shell
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) exec postgres psql -U podcastfy
+
+redis-cli: ## Open Redis CLI
+	docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) exec redis redis-cli -a $$(grep REDIS_PASSWORD $(ENV_FILE) | cut -d'=' -f2)
+
+logs-api: ## View API logs
+	@make logs SERVICE=api1
+
+logs-worker: ## View worker logs
+	@make logs SERVICE=worker1
+
+logs-nginx: ## View Nginx logs
+	@make logs SERVICE=nginx
+
+health-check: ## Detailed health check
+	@echo "=== System Health Check ==="
+	@echo ""
+	@echo "1. API Health:"
+	@curl -s http://localhost/health | jq . || echo "FAILED"
+	@echo ""
+	@echo "2. Database Connection:"
+	@docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) exec postgres pg_isready || echo "FAILED"
+	@echo ""
+	@echo "3. Redis Connection:"
+	@docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) exec redis redis-cli ping || echo "FAILED"
+	@echo ""
+	@echo "4. Storage Access:"
+	@curl -s http://localhost:9000/minio/health/live || echo "FAILED"
+	@echo ""
+	@echo "5. Container Status:"
+	@docker-compose -f $(COMPOSE_FILE) --env-file $(ENV_FILE) ps
+
+performance-test: ## Run basic performance test
+	@echo "Running performance test..."
+	@command -v ab >/dev/null 2>&1 || { echo "Apache Bench (ab) required but not installed."; exit 1; }
+	@echo "Testing health endpoint..."
+	ab -n 1000 -c 10 http://localhost/health 
