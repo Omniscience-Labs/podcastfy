@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast.  Wow, big news from the world of superheroes!  This new Superman reboot is absolutely crushing it at the box office!"
+</Person1><Person2> "Crushing it?   Tell me more!  I haven't been keeping up with the latest releases." 
+</Person2><Person1> "It soared past expectations, hitting a whopping $122 million in its opening weekend!  Way beyond the predicted $90 million.  Left 'Jurassic World Rebirth' in the dust – that only managed $40 million this weekend." 
+</Person1><Person2> "That's impressive, especially considering DC's track record compared to, say, the Marvel Cinematic Universe.  Remember 'Justice League' a few years back?" 
+</Person2><Person1> "Exactly!  That only hit $229 million domestically. Marvel's 'Infinity War' the next year? Almost triple that!  But, uh, you know, Marvel's been a bit… less stellar lately. People were talking about 'superhero fatigue.'" 
+</Person1><Person2> "Right, I heard that too!  But this Superman success might just debunk that theory, huh?"
+</Person2><Person1> "Seems like it!   It's not just about the genre; it's about the individual movie. And this one's a winner. The summer box office is up a solid 16% compared to last year!" 
+</Person1><Person2> "So, is this enough to get the overall box office to $4 billion for the summer?"
+</Person2><Person1> "It's a possibility!  But, remember, June had some underperformers. Like Disney's 'Elio,' which only pulled in $20 million, even with the good reviews. I see, interesting. Got it.  It's a real feast-or-famine situation these days." 
+</Person1><Person2> "True. 'Superman' joins 'A Minecraft Movie' and 'Lilo & Stitch' in the $100 million+ opening weekend club this year.   Speaking of, 'Lilo & Stitch' is still killing it, almost hitting $414 million since Memorial Day!" 
+</Person2><Person1> "And don't forget, 'Fantastic Four' is coming up later this month!  Plus 'Freakier Friday' – the sequel to the 2003 'Freaky Friday' -  might be a surprise hit in August." 
+</Person1><Person2> "So much to look forward to! These July releases are crucial for Hollywood, though. 'Fantastic Four' needs to deliver, just like Superman has. "
+</Person2><Person1> "Absolutely!  Well, folks, that's all the time we have for today.  Thanks for tuning in to PODCASTIFY!  Until next time, stay super!" </Person1>

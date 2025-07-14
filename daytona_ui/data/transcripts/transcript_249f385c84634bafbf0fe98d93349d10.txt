@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast.  Wow, talk about a comeback!  This "Superman" reboot is soaring higher than a speeding bullet at the box office!" 
+</Person1><Person2> "Seriously! A $122 million opening weekend?!   Ka-pow! That's gotta put a smile on Warner Bros. Discovery's face, right?"
+</Person2><Person1> "You know it!  Especially after some of DC's past stumbles.  Remember "Justice League"?  Not exactly a box office behemoth compared to some of those Marvel giants."
+</Person1><Person2> "True, true. But this "Superman" success is a really good sign.  Maybe this is the shot in the arm DC Studios needed.  What do you think, is this the start of a DC renaissance?"
+</Person2><Person1> "I, uh,  I think it has the potential to be! This proves that audiences still crave superhero stories, but it’s gotta be the right story, told the right way! "
+</Person1><Person2> "And a good story can overcome so-called "superhero fatigue." I see, interesting!  But I'm curious, how does this compare to other big hits this year?"
+</Person2><Person1> "Well, "Superman" joins "A Minecraft Movie" and "Lilo & Stitch" in the $100 million+ opening weekend club.  Not bad company to be in, right?"
+</Person1><Person2> "Impressive!  It sounds like the summer box office is heating up after a, shall we say, lukewarm start in June."
+</Person2><Person1> "Definitely.  "Superman" is a much-needed win.  And with "Fantastic Four" coming up,  things are looking even brighter for the rest of the summer."
+</Person1><Person2> "Don't forget about "Freakier Friday," too! That could be a dark horse hit. Hmm, Disney’s really hitting it out of the park this summer."
+</Person2><Person1> "Yeah, you know, it’s interesting how a few big successes can really turn things around. It sounds like “Superman” may not be the last superhero movie taking box office by storm!"
+</Person1><Person2> "Absolutely. It really highlights how crucial these blockbusters are for the entire industry. Makes you wonder what other surprises are in store for us this year!"
+</Person2><Person1> "Got it.  Well, that's all the time we have for today.  Thanks for tuning in to PODCASTIFY!  Until next time, keep reaching for the stars, folks!"</Person1>

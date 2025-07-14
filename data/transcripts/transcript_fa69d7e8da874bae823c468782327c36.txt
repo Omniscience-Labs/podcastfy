@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast.  It's showtime, folks!  We're diving into the cinematic splash made by the new Superman movie!" 
+</Person1><Person2> "Splash is an understatement!  A cannonball into the box office, more like! 122 million dollars?  Ka-pow!"
+</Person2><Person1> "Right? Totally blew past those initial estimates.  Remember everyone saying 90 million?  Ha!  This is huge for Warner Bros., especially given… well, you know…"
+</Person1><Person2> "The less-than-stellar track record of the DC universe lately. Compared to Marvel, it's been a bit… underwhelming at times, wouldn't you say?"
+</Person2><Person1> "I mean…  Justice League versus Infinity War? Not exactly a fair fight at the box office.  But this Superman reboot?  This could be a game changer." 
+</Person1><Person2> "Agreed! And, it debunks the 'superhero fatigue' theory, doesn't it?  Proves it's all about a good movie, not just capes and tights!"
+</Person2><Person1> "Exactly! People still crave these stories, they just need to be well-told! And this summer? Box office goldmine!  Up 16% compared to last year, even with some flops like, uh… Elio?"
+</Person1><Person1> "Yeah,  poor Elio.  Didn't quite reach for the stars, did it? But hey, that just makes Superman's success even sweeter! Third movie to break $100 million in its opening weekend this year? Boom!"
+</Person1><Person1> "Minecraft, Lilo & Stitch… now Superman? The summer of sequels and reboots is officially upon us. Although, I’m kind of surprised Lilo and Stitch is doing so well." 
+</Person1><Person2> "Tell me about it. It’s catching up to Minecraft.  It's a small world after all, right?  Speaking of summer blockbusters, I'm really looking forward to Fantastic Four!  And maybe…  just maybe…  Freakier Friday will surprise us all." 
+</Person2><Person1> "Freakier Friday…  That's a blast from the past! But July is crucial for Hollywood. Fantastic Four needs to deliver, or we might see a dip.  These hits are carrying the whole season on their super-powered shoulders." 
+</Person1><Person2> "Fingers crossed! This Superman success has me feeling optimistic, though. It’s a sign of hope… a beacon of light in the sometimes dark world of superhero cinema!  And with that folks, we gotta fly!"
+</Person2><Person1> "And that's a wrap on another episode of PODCASTIFY! So long, and thanks for listening!"</Person1>

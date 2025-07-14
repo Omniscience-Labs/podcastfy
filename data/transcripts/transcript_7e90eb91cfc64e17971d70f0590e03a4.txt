@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast.  Wow, movie fans, seems like Superman has flown higher than a speeding bullet at the box office!"  
+</Person1><Person2> "It's a bird, it's a plane, it's...a massive box office hit!  $122 million?  That's  impressive!  Beating early estimates by over 30 million!  What's the scoop, what's driving this success?"
+</Person2><Person1> "Well, uh, Paul Dergarabedian, a senior media analyst, uh, at Comscore, says it's the power of the 'S'. Superman's iconic, you know? Everyone knows and loves  Superman!  It's like putting him on the Mount Rushmore of superheroes – instant recognition!" 
+</Person1><Person2> "I see, interesting. But DC has had its ups and downs, right?  They haven't always matched Marvel's box office power." 
+</Person2><Person1> "True, true.  But this is a fresh start, a reboot!  James Gunn's take on the character seems to be resonating with audiences. And, uh, the article points out something interesting.  Remember the talk of ‘superhero fatigue’?" 
+</Person1><Person2> "Oh, right!  Everyone thought audiences were tired of capes and tights." 
+</Person2><Person1> "Exactly!  Dergarabedian thinks 'Superman's' success puts that idea to bed. It's not about genre fatigue, it's about the quality of the individual film!"
+</Person1><Person2> "Got it!  So, a good movie is a good movie, regardless of the genre. This is great news for the summer box office, which seems to be, uh, flourishing!" 
+</Person2><Person1> "Absolutely!  The article mentions the summer box office is up 16% compared to last year! They are closing in on a total of $2.35 billion in earnings – just  for the summer! This comes after a somewhat lackluster start to the year, with movies like 'Elio' underperforming." 
+</Person1><Person2> "But then 'A Minecraft Movie' and 'Lilo & Stitch' both broke the $100 million opening weekend mark.  'Superman' is now the third film this year to achieve this! So, does this mean smooth sailing for the rest of the summer blockbuster season?" 
+</Person2><Person1> "Well, not so fast.  While 'Superman' is a great sign, the industry still needs 'Fantastic Four' to perform well, the article mentions. And let's not forget 'Freakier Friday’– which might just surprise us all!" 
+</Person1><Person2> "Fingers crossed for all those releases!  It's fun to see the box office race heat up!" 
+</Person2><Person1> "  Thanks for tuning in to PODCASTIFY! Until next time, this is Person1 signing off – keep on podcasting!"</Person1>

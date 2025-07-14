@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast. Today, we're diving into the heartbreaking news of the Grand Canyon Lodge being consumed by the raging Arizona wildfires." It's a devastating loss.
+</Person1><Person2> Absolutely tragic!  This historic lodge, the only accommodation inside the North Rim, gone just like that!  What's the latest, Person1?
+</Person2><Person1> Well, Person2, the Dragon Bravo Fire, one of two major fires in the area,  is to blame.  It's ripped through tens of thousands of acres, forcing the North Rim closure for the entire 2025 tourist season. Imagine, no more visits to the North Rim this year!
+</Person1><Person2> Unbelievable!  And the lodge itself? What do we know about the damage?
+</Person2><Person1>The lodge, dating back to the 1930s, housed dining facilities, a gift shop, a post office…all gone.  Aramark, who operated the lodge, expressed their devastation, but thankfully, everyone was safely evacuated.  No injuries reported, which is a silver lining in this dark cloud.
+</Person1><Person2> That's a relief! But the damage assessment must be grim.
+</Person2><Person1> Grim indeed. The National Park Service estimates between 50 and 80 buildings lost, including visitor facilities and administrative buildings.   And get this, a chlorine leak from a nearby water treatment plant forced firefighters to evacuate!    Dangerous situation, especially with the chlorine gas being heavier than air, posing a risk to anyone in the area. 
+</Person1><Person2> Wow, a chlorine leak on top of everything else!  That's a nightmare scenario.  What about the other fire you mentioned?
+</Person2><Person1> Right, the White Sage Fire!   It's scorched over 40,000 acres in the Kaibab National Forest, causing hundreds of evacuations. Both fires are suspected to be caused by lightning, according to the park service. 
+</Person1><Person2> Lightning strikes, really? It's just adding insult to injury.    The Grand Canyon is such a beloved destination, nearly five million visitors last year alone! 
+</Person2><Person1> I know, it's a significant loss.   The South Rim, thankfully, remains open.   But this tragedy really highlights the destructive power of nature, doesn't it?
+</Person1><Person2> Absolutely.  It's a stark reminder of how fragile these natural wonders can be.   Hopefully, recovery efforts can begin soon.   Anything else to add, Person1?
+</Person2><Person1>Just a reminder to our listeners to check official sources for updates and respect any closures or restrictions in the area.    Stay safe, everyone, and thanks for listening to PODCASTIFY.   Until next time, goodbye!</Person1>

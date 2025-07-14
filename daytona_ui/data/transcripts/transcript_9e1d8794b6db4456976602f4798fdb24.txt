@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast. It's a bird! It's a plane! No, it's… blockbuster news!" 
+</Person1><Person2> "Haha!  You're not kidding! That new Superman movie absolutely soared at the box office. $122 million?!  Ka-pow!"
+</Person2><Person1> "Right?!  Way past those initial predictions. Crushed last week's champ, 'Jurassic World Rebirth,' which only pulled in $40 million this time around.  Talk about a super-sized win for Warner Bros, and good news for them considering they are CNN's parent company.   Um, where was I?  Oh yeah, sources say 'Superman' is on track to save the entire summer box office!"
+</Person1><Person2> "I saw that!  They're saying this could push the total summer earnings close to a whopping $4 billion.   Uh, but wasn't June kind of a slump? Some movies really underperformed, like 'Elio'—only $20 million, despite good reviews! Crazy, right?"
+</Person2><Person1> "Totally. It's a real rollercoaster these days.   Feast or famine, baby! But this Superman success?  It shows if a movie's good, people will show up. No more talk of 'superhero fatigue'! This proves it's all about the individual film and the character, apparently one with a famous 'S'." 
+</Person1><Person2> "Exactly!  And let's not forget, 'Superman' is the third movie this year to break $100 million on opening weekend.  First, 'A Minecraft Movie,' then 'Lilo & Stitch', both huge.  " 
+</Person2><Person1> "Don't tell me you forgot 'A Minecraft Movie'. That movie single-handedly saved the box office from a dismal first quarter! And 'Lilo & Stitch' is almost at $414 million, hot on its heels!" 
+</Person1><Person2> "No way I'd forget! I was just… uh… building suspense! Anyway, what's next? 'Fantastic Four' is dropping soon, right?" 
+</Person2><Person1> "Yup, July 25th!  Big expectations there.    And don't count out 'Freakier Friday' in August! Sequels can be surprising hits, ya know?" 
+</Person1><Person2> "True!  But Hollywood's got a lot riding on these July releases, especially for the overall yearly box office. They need these wins. Competition is fierce. I mean, even Elmo got hacked on 'X'!" 
+</Person2><Person1> "Whoa!  Seriously? Poor Elmo. That's rough. Speaking of rough, did you catch that article about EU trade and Trump's potential impact?"
+</Person1><Person2> "Yeah, saw that headline.  Heavy stuff.  We'll have to dive into that another time, though. For now, let's celebrate Superman's triumphant return! Up, up, and away with the box office!"
+</Person2><Person1> "Great points today and great questions! This has been another episode of PODCASTIFY - Your Personal Generative AI Podcast. So long, folks, and thanks for tuning in!"</Person1>

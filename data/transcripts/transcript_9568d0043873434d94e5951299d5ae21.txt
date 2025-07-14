@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast.  Wow, big news from the world of superheroes!  Looks like Superman is soaring higher than a speeding bullet at the box office!"
+</Person1><Person2> "Higher than $90 million, beating initial estimates. Like, 122 million bucks high!  That's a seriously impressive opening weekend. Definitely leaving 'Jurassic World Rebirth' in the dust." 
+</Person2><Person1> "Totally! And you know, this is huge for DC Studios, especially given the historical comparison to the Marvel Cinematic Universe.  Remember how 'Justice League' did compared to 'Infinity War'? This is a big win for them." 
+</Person1><Person2> Right?! Plus, there’s been all this talk about "superhero fatigue," but it seems like the right movie can still draw a massive crowd. It's all about individual movie quality now.
+</Person2><Person1> "Absolutely! And don't even get me started on how this impacts the summer box office numbers! We're talking a 16% increase year over year!"  
+</Person1><Person2> "Whoa! 16%! That's wild! So, is $4 Billion total box office take for Summer 2025 out of the question?" 
+</Person2><Person1> "Hmm, tough to say.  There have been some underperformers—remember 'Elio'?— but hits like 'Superman' are definitely helping close that gap."   "It's like a feast or famine out there!" 
+</Person1><Person2> "True.  'Superman' joins 'A Minecraft Movie' and 'Lilo & Stitch' in that $100 million+ opening weekend club.  'Lilo & Stitch' especially is cleaning up, coming close to 'Minecraft's' total gross." Impressive!
+</Person2><Person1> "Speaking of impressive, this is a huge win for Warner Bros.  This could really change things for the studio!"
+</Person1><Person2> And 'Superman' isn't the only superhero we're getting!  'Fantastic Four' is just around the corner. I’m curious how that will compare to 'Superman’s' box office run. 
+</Person2><Person1> “Oh I know!  And don't forget 'Freakier Friday' – might be a sleeper hit!  But yeah, Hollywood's got its eyes glued to 'Fantastic Four' and how it performs, uh, after 'Superman's' success.”
+</Person1><Person2> “Fingers crossed for another blockbuster hit.  It's crucial for July's performance overall.”
+</Person2><Person1> Thanks for tuning in to PODCASTIFY.  Until next time, keep reaching for the stars!</Person1>

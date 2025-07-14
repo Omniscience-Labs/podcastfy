@@ -92,7 +92,7 @@ class PodcastfyUI {
 
             // Handle response
             if (response.success) {
-                this.handleSuccess(response);
+                await this.handleSuccess(response);
             } else {
                 this.showError(response.error || 'Failed to generate podcast');
             }
@@ -150,20 +150,49 @@ class PodcastfyUI {
     }
 
     async callPodcastfyAPI(data) {
-        // For now, we'll simulate the API call
-        // In a real implementation, this would call your backend API
-        
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // Simulate successful response
-                resolve({
-                    success: true,
-                    audio_url: '/api/audio/sample.mp3', // This would be the actual audio URL
-                    transcript: this.generateSampleTranscript(data),
-                    filename: 'podcast_' + Date.now() + '.mp3'
+        try {
+            // Create FormData for file uploads
+            const formData = new FormData();
+            
+            // Add JSON data
+            const jsonData = { ...data };
+            
+            // Remove files from JSON data and add to FormData
+            if (data.pdf_files) {
+                data.pdf_files.forEach(file => {
+                    formData.append('pdf_files', file);
                 });
-            }, 3000); // Simulate 3-second processing time
-        });
+                delete jsonData.pdf_files;
+            }
+            
+            if (data.image_files) {
+                data.image_files.forEach(file => {
+                    formData.append('image_files', file);
+                });
+                delete jsonData.image_files;
+            }
+            
+            // Add JSON data as a string
+            formData.append('data', JSON.stringify(jsonData));
+            
+            // Make the API call
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            return result;
+            
+        } catch (error) {
+            console.error('API call failed:', error);
+            throw error;
+        }
     }
 
     generateSampleTranscript(data) {
@@ -191,15 +220,26 @@ class PodcastfyUI {
 <Person2> "Thanks for joining us on this AI-generated podcast journey!"</Person2>`;
     }
 
-    handleSuccess(response) {
+    async handleSuccess(response) {
         this.currentAudioUrl = response.audio_url;
-        this.currentTranscript = response.transcript;
+        
+        // Fetch transcript content
+        try {
+            const transcriptResponse = await fetch(response.transcript_url);
+            if (transcriptResponse.ok) {
+                this.currentTranscript = await transcriptResponse.text();
+                this.transcriptContent.innerHTML = this.formatTranscript(this.currentTranscript);
+            } else {
+                console.error('Failed to fetch transcript');
+                this.transcriptContent.innerHTML = '<p class="text-red-500">Failed to load transcript</p>';
+            }
+        } catch (error) {
+            console.error('Error fetching transcript:', error);
+            this.transcriptContent.innerHTML = '<p class="text-red-500">Failed to load transcript</p>';
+        }
         
         // Update audio player
         this.audioPlayer.src = response.audio_url;
-        
-        // Update transcript
-        this.transcriptContent.innerHTML = this.formatTranscript(response.transcript);
         
         // Show results
         this.showResults();

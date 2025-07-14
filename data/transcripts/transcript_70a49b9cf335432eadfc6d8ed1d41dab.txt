@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast.  Wow, folks, big news from the world of superheroes! Seems like Superman has not only leaped tall buildings in a single bound, but also soared to the top of the box office!"
+</Person1><Person2> "I see, interesting! 122 million dollars?  That's a hefty chunk of kryptonite, eh?   Beating initial estimates and zooming past 'Jurassic World Rebirth'?  Color me impressed!"
+</Person2><Person1> "Got it. Totally! And it's a big win for DC Studios, you know, considering they haven't always been keeping pace with those Marvel behemoths.  Remember 'Justice League' versus 'Infinity War'?  Night and day!"
+</Person1><Person2> "Um, yeah, but haven't Marvel movies been slumping lately? Superhero fatigue, and all that?"
+</Person2><Person1> "Right! Which makes this 'Superman' triumph even more remarkable! It proves that if the movie's good, people will show up. This isn't just a win for DC, it's a win for the entire superhero genre!"
+</Person1><Person2> "I'm still a little skeptical. One hit doesn't erase a trend, does it?"
+</Person2><Person1> "True, True. But look at the bigger picture. The summer box office is up 16% compared to last year! This could be the turning point we've been waiting for!"
+</Person1><Person2> "Okay, okay, you've almost convinced me.  But remember 'Elio'? Big flop, despite good reviews.  It's still a risky business, this movie-making game." 
+</Person2><Person1> "No doubt, no doubt! But 'Superman' joining the $100 million-plus opening weekend club, alongside 'Minecraft' and 'Lilo & Stitch', is a powerful sign. Uh, and don't forget, 'Lilo & Stitch' is crushing it this summer, almost catching 'Minecraft' as the year's top earner! Talk about a comeback story."
+</Person1><Person2> "So, what's next? More superhero flicks, I presume?"
+</Person2><Person1> "You bet! 'Fantastic Four' is just around the corner, and I have a hunch 'Freakier Friday' might surprise us all.   July is crucial for Hollywood, so fingers crossed these big hitters keep the momentum going." 
+</Person1><Person2> "Well, thanks for the insightful analysis! I'm definitely feeling more optimistic about the future of capes and tights now." 
+</Person2><Person1> "And there you have it, folks! Another exciting episode of PODCASTIFY.  Until next time, stay super! Bye!"</Person1>

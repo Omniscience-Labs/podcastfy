@@ -1,0 +1,15 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast. Today, we're diving into a shocking story from the Grand Canyon." 
+</Person1><Person2> "I've heard whispers, something about a devastating fire?"
+</Person2><Person1> "Absolutely.  The Grand Canyon Lodge, the only accommodation inside the North Rim, has been completely destroyed by a wildfire dubbed the Dragon Bravo Fire." 
+</Person1><Person2> "No way! The historic lodge from the 1930s? Gone?  That's awful.  What about the people there?"
+</Person2><Person1> "Thankfully, Aramark, the company that runs the lodge, confirmed everyone – staff and guests – were safely evacuated. Phew!  But, uh, the lodge itself,  dining facilities, the gift shop, post office... all gone." 
+</Person1><Person2> "Fifty to eighty buildings lost in total, according to the National Park Service. That's a huge blow." 
+</Person2><Person1> "It is.  And get this, the fire was fueled by 40 mile per hour winds! Imagine! And then a chlorine leak at a water treatment plant forced even firefighters to evacuate.  Dangerous stuff, that chlorine gas." 
+</Person1><Person2> "Double whammy!  This Dragon Bravo Fire isn't the only one, right? There's another one raging nearby?"
+</Person2><Person1> "Exactly, the White Sage Fire. It's already burned over 40,000 acres in the Kaibab National Forest!  Forcing hundreds to evacuate." 
+</Person1><Person2> "Oh, good grief. And the cause of all this devastation?" 
+</Person2><Person1> "Lightning, they suspect.  Mother Nature can be fierce.  I see.  You know, nearly five million people visited the Grand Canyon last year.  It's one of the country's top tourist spots.  This is a significant loss.." 
+</Person1><Person2>  "It truly is. Imagine the impact on tourism, not to mention the ecological damage.  But at least the South Rim remains open, right?" 
+</Person2><Person1>  "That's a bit of good news, I guess.  It's heartbreaking to see such a beloved landmark ravaged like this.  But, um, glad everyone's safe, and uh, hopefully, they can contain these fires soon." 
+</Person1><Person2>  "Let's hope so. And thanks for that update. It's essential to stay informed about such significant events. 
+</Person2><Person1> "Thanks for listening.  Good bye, and tune in next time for more updates on PODCASTIFY  - Your Personal Generative AI Podcast." </Person1>
