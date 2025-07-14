@@ -1,0 +1,13 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast.  Hot off the BBC news wire, a whirlwind of global happenings! Trump's touching down in the UK for a second state visit,  hobnobbing with the King at Windsor!"
+</Person1><Person2> "Hold up, a second state visit? Didn't we just cover his…first…  Oh, right, different timeline. And speaking of controversial figures, Viktor Orban, Hungary's 'strongman' PM, seems to be losing his grip." 
+</Person2><Person1> "Yeah, apparently not in the way anyone expected.  BBC InDepth has the scoop.   But shifting gears – a tragic story from Gaza.  Children, waiting for water…killed in an Israeli air strike.  The military's admitted 'error',"  utterly heartbreaking.
+</Person1><Person2> "Wow. Just…wow. Okay, some slightly better news from the world of sports – Chelsea pulls off a stunning Club World Cup victory against PSG!"
+</Person2><Person1> "Palmer, a double scorer and an assist?  Talk about a performance!   And while we're celebrating wins, Sinner bounces back from that French Open heartbreak to clinch the Wimbledon title!  Everything except easy, huh? I'll say!"
+</Person1><Person2> "From tennis to tunes – Drake's final Wireless show… a bit of a disappointment, eh? 40 minutes?  Come on, Drake!"
+</Person2><Person1> "Right? 150,000 fans and he's in and out like a flash. Some international tension brewing –  US and Mexico in a water shortage standoff. Never a dull moment in global politics, is there?"
+</Person1><Person2> "Speaking of politics, Macron's ringing alarm bells – Europe's freedom facing its biggest threat since WWII? That's a heavy statement." 
+</Person2><Person1> "It is! And look at this – South Africa's police minister suspended over organized crime allegations. From allegations to escapes, a French prisoner pulls a Houdini – out of jail in another inmate's bag?   Talk about resourceful!" 
+</Person1><Person2> "Uh, yeah, resourceful is one word for it. I'm also seeing news about former Nigerian leader Muhammadu Buhari's passing.  A significant figure in African politics.  A lot to unpack there."
+</Person2><Person1> "Absolutely. And we can't forget the ongoing clashes in Syria.  Sectarian violence claiming at least 30 lives… a grim reality.   From Syria to Texas – US media reporting on camp buildings omitted from flood risk maps? That raises some eyebrows."
+</Person1><Person2> "Doesn't it though? And back to the US, Trump's defending Attorney General Pam Bondi over Epstein files. This story just keeps resurfacing." 
+</Person2><Person1> "It does.  It seems like every corner of the globe has a headline waiting to be read. Got it.  This has been quite the news roundup. Thanks for tuning in to PODCASTIFY! Catch you next time!" </Person1>

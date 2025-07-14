@@ -17,7 +17,7 @@ import uvicorn
 
 
 def load_base_config() -> Dict[Any, Any]:
-    config_path = Path(__file__).parent / "podcastfy" / "conversation_config.yaml"
+    config_path = Path(__file__).parent.parent / "conversation_config.yaml"
     try:
         with open(config_path, 'r') as file:
             return yaml.safe_load(file)
@@ -157,6 +157,9 @@ async def generate_podcast_endpoint(data: dict):
         else:
             raise HTTPException(status_code=500, detail="Invalid result format")
 
+    except HTTPException:
+        # Re-raise HTTP exceptions (like validation errors) as-is
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

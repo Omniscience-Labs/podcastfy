@@ -1,0 +1,15 @@
+<Person1> "Welcome to PODCASTIFY  - Your Personal Generative AI Podcast.  Alright folks, settle in, grab your coffee mugs – we're diving deep into the world of Friends!" 
+</Person1><Person2> Ooh, exciting! I’ve always wondered about the behind-the-scenes scoop on this iconic show. Where do we even start with a series this massive? 
+</Person2><Person1> Well, how about at the beginning? It all started with a seven-page treatment called Insomnia Cafe.  Can you believe that? From a simple idea about six 20-somethings navigating life in Manhattan, Friends was born! 
+</Person1><Person2>  Wow, Insomnia Cafe? That’s a totally different vibe. So, who were the masterminds behind this cultural phenomenon?  
+</Person2><Person1> David Crane and Marta Kauffman, the creative geniuses!  And they teamed up with Kevin S. Bright, who'd worked on Dream On, to bring it all to life.  They pitched it to NBC, who thankfully, saw the potential goldmine they had in their hands. 
+</Person1><Person2> Smart move, NBC.  And the cast!  Jennifer Aniston, Courteney Cox, Lisa Kudrow, Matt LeBlanc, Matthew Perry, David Schwimmer – legendary. But I heard there were some casting shake-ups?  
+</Person2><Person1>Oh yeah, did you know Courteney originally auditioned for Rachel?! And they actually had Jennifer Aniston in mind for Monica! Imagine that alternate universe… 
+</Person1><Person2> Whoa. That would’ve changed everything. Talk about a sliding doors moment.   Okay, so the casting is solidified, the script is written – where did they film this iconic show? New York, right? 
+</Person2><Person1>  Good guess! But nope, it was all filmed on a soundstage in Burbank, California.  Can you believe it? Those New York apartments, Central Perk... all Hollywood magic. 
+</Person1><Person2> Mind. Blown.  What about the finale? I heard it was a HUGE deal.  
+</Person2><Person1>  Huge is an understatement! Over 52 MILLION viewers tuned in. It was one of the most watched finales ever. And the cast was apparently a mess, super emotional. 
+</Person1><Person2> Aww. Makes sense. It was the end of an era.  So, after Friends wrapped, what happened with the cast? 
+</Person2><Person1> Well, Matt LeBlanc got his own spin-off, Joey.  It… didn’t quite capture the same magic, sadly. But the Friends legacy lived on! It earned a ton in syndication, went to Netflix, then HBO Max... it's still making waves today! 
+</Person1><Person2>  Totally! Friends is everywhere, and for good reason! I mean, “The Rachel” haircut? “How you doin’?”? It's a cultural touchstone! 
+</Person2><Person1>  And that, my friends, is the story of how Friends became a global phenomenon. It's about more than just a TV show; it’s a piece of our cultural DNA! Until next time, thanks for tuning in to PODCASTIFY! </Person1>

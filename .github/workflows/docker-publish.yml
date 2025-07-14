@@ -44,7 +44,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.CR_PAT }}
+          password: ${{ secrets.CR_PAT || github.token }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -78,8 +78,8 @@ jobs:
           
       - name: Test Docker images
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || '' }}
         run: |
           # Test PyPI version
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -88,3 +88,10 @@ jobs:
           # Test development version
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:dev
           docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:dev python3 -c "import podcastfy"
+          
+          # Test basic functionality without API keys
+          echo "Testing basic functionality..."
+          docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest python3 -c "
+          from podcastfy.client import generate_podcast
+          print('Podcastfy import successful')
+          "

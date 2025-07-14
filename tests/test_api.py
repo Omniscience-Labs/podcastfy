@@ -5,10 +5,9 @@ Tests for the FastAPI endpoints.
 import os
 import pytest
 from podcastfy.api.fast_app import app
-from httpx import WSGITransport
 from fastapi.testclient import TestClient
 
-client = TestClient(app, transport=WSGITransport(app=app))
+client = TestClient(app)
 
 @pytest.fixture
 def sample_config():
@@ -29,7 +28,6 @@ def sample_config():
         "output_language": "English"
     }
 
-@pytest.mark.skip(reason="Trying to understand if other tests are passing")
 def test_generate_podcast_with_edge_tts(sample_config):
     response = client.post("/generate", json=sample_config)
     assert response.status_code == 200
