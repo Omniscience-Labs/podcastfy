@@ -1,43 +1,20 @@
-# Use Ubuntu 24.04 as base image
-FROM ubuntu:24.04
+FROM python:3.11-slim
 
-# Prevent interactive prompts during package installation
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install system dependencies
+# Install system dependencies including ffmpeg
 RUN apt-get update && \
     apt-get install -y \
-    python3-full \
-    python3-pip \
     ffmpeg \
+    curl \
     && rm -rf /var/lib/apt/lists/*
-    
+
 WORKDIR /app
-# Create and activate virtual environment
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+COPY . .
 
-# Upgrade pip
-RUN python3 -m pip install --upgrade pip
-
-# Install dependencies
-COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
-COPY . /app
+# Install Doppler CLI
+RUN curl -sLf --retry 3 --retry-delay 2 https://downloads.doppler.com/install.sh | sh
 
+EXPOSE 10000
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-
-# Verify installations
-RUN echo "Verifying installations:" && \
-    echo "Ubuntu version:" && cat /etc/os-release && \
-    echo "FFmpeg version:" && ffmpeg -version && \
-    echo "Python version:" && python3 --version && \
-    echo "Pip version:" && pip --version && \
-    echo "Installed packages:" && pip list
-
-# Command to run when container starts
-CMD ["uvicorn", "podcastfy.api.fast_app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["doppler", "run", "--", "python", "daytona_ui/server.py"]
