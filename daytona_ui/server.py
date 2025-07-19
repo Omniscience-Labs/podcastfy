@@ -12,11 +12,6 @@ import json
 import uuid
 import logging
 from pathlib import Path
-from flask import Flask, request, jsonify, send_from_directory, render_template_string, send_file
-from flask_cors import CORS
-import subprocess
-import tempfile
-import shutil
 
 # 🟢 ROBUST PATH HANDLING: Always resolve paths relative to project root
 # Get the project root (podcastfy directory) - works from any working directory
@@ -25,6 +20,15 @@ DAYTONA_UI_DIR = Path(__file__).parent.resolve()
 
 # Add podcastfy to Python path
 sys.path.insert(0, str(PROJECT_ROOT))
+
+# Import pydub patch before any pydub imports
+from pydub_patch import *
+
+from flask import Flask, request, jsonify, send_from_directory, render_template_string, send_file
+from flask_cors import CORS
+import subprocess
+import tempfile
+import shutil
 
 from podcastfy.client import generate_podcast
 from podcastfy.utils.image_processor import ImageProcessor

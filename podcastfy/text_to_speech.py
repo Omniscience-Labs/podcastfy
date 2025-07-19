@@ -12,6 +12,42 @@ import os
 import re
 import tempfile
 from typing import List, Tuple, Optional, Dict, Any
+
+# Import pydub patch before importing pydub
+try:
+    from daytona_ui.pydub_patch import *
+except ImportError:
+    # If we can't import from daytona_ui, try to create the patch inline
+    import sys
+    import warnings
+    
+    # Create a dummy audioop module if it doesn't exist
+    try:
+        import audioop
+    except ImportError:
+        # Create a dummy module
+        class DummyAudioop:
+            def __getattr__(self, name):
+                def dummy_function(*args, **kwargs):
+                    warnings.warn(f"audioop.{name} is not available in Python 3.13+", RuntimeWarning)
+                    return None
+                return dummy_function
+        
+        # Create a dummy module
+        import types
+        audioop = types.ModuleType('audioop')
+        audioop.__dict__.update(DummyAudioop().__dict__)
+        
+        # Add it to sys.modules so pydub can import it
+        sys.modules['audioop'] = audioop
+
+    # Also handle pyaudioop
+    try:
+        import pyaudioop
+    except ImportError:
+        # Use the same dummy module for pyaudioop
+        sys.modules['pyaudioop'] = audioop
+
 from pydub import AudioSegment
 
 from .tts.factory import TTSProviderFactory
