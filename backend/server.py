@@ -70,7 +70,7 @@ app = Flask(__name__)
 
 # Configure CORS for Vercel frontend
 CORS(app, origins=[
-    "https://your-vercel-frontend.vercel.app",  # Update with your Vercel URL
+    "https://podcastfy-frontend.vercel.app",  # Update with your Vercel URL
     "http://localhost:3000",  # Local development
     "http://localhost:5000"   # Local development
 ])
@@ -91,6 +91,22 @@ else:
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 TRANSCRIPT_DIR.mkdir(parents=True, exist_ok=True)
+
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint - API information"""
+    return jsonify({
+        'service': 'Podcastfy Backend API',
+        'version': '1.0.0',
+        'status': 'running',
+        'endpoints': {
+            'health': '/api/health',
+            'generate': '/api/generate',
+            'audio': '/api/audio/<filename>',
+            'transcript': '/api/transcript/<filename>'
+        },
+        'frontend': 'https://podcastfy-frontend.vercel.app'
+    })
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
