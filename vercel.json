@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "daytona_ui/server.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "daytona_ui/server.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "daytona_ui/server.py"
+    }
+  ],
+  "functions": {
+    "daytona_ui/server.py": {
+      "maxDuration": 300
+    }
+  },
+  "env": {
+    "PYTHONPATH": "."
+  }
+}
