@@ -16,11 +16,6 @@
       "dest": "daytona_ui/server.py"
     }
   ],
-  "functions": {
-    "daytona_ui/server.py": {
-      "maxDuration": 300
-    }
-  },
   "env": {
     "PYTHONPATH": "."
   }
