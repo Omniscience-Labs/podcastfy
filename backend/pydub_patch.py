@@ -1,10 +1,40 @@
+#!/usr/bin/env python3
 """
-Patch for pydub to handle missing audioop module in Python 3.13+
-This should be imported before importing pydub
+Pydub patch for Python 3.13 compatibility
+Fixes missing audioop module and escape sequence warnings
 """
 
 import sys
 import warnings
+import re
+import types
+
+# Fix escape sequence warnings in pydub
+def fix_pydub_warnings():
+    """Fix invalid escape sequence warnings in pydub"""
+    try:
+        import pydub.utils
+        # Fix the regex patterns that have invalid escape sequences
+        if hasattr(pydub.utils, '_parse_ffmpeg_output'):
+            # Replace the problematic regex patterns
+            original_parse = pydub.utils._parse_ffmpeg_output
+            
+            def fixed_parse_ffmpeg_output(output):
+                # Fix the regex patterns
+                lines = output.split('\n')
+                result = []
+                for line in lines:
+                    # Fix the problematic patterns
+                    line = re.sub(r'([su]([0-9]{1,2})p?) \(([0-9]{1,2}) bit\)$', r'\1 (\3 bit)', line)
+                    line = re.sub(r'([su]([0-9]{1,2})p?)( \(default\))?$', r'\1\3', line)
+                    line = re.sub(r'(flt)p?( \(default\))?$', r'\1\2', line)
+                    line = re.sub(r'(dbl)p?( \(default\))?$', r'\1\2', line)
+                    result.append(line)
+                return original_parse('\n'.join(result))
+            
+            pydub.utils._parse_ffmpeg_output = fixed_parse_ffmpeg_output
+    except ImportError:
+        pass
 
 # Create a dummy audioop module if it doesn't exist
 try:
@@ -19,7 +49,6 @@ except ImportError:
             return dummy_function
     
     # Create a dummy module
-    import types
     audioop = types.ModuleType('audioop')
     audioop.__dict__.update(DummyAudioop().__dict__)
     
@@ -30,5 +59,9 @@ except ImportError:
 try:
     import pyaudioop
 except ImportError:
-    # Use the same dummy module for pyaudioop
-    sys.modules['pyaudioop'] = audioop 
+    sys.modules['pyaudioop'] = audioop
+
+# Apply the fixes
+fix_pydub_warnings()
+
+print("Pydub patch applied successfully for Python 3.13 compatibility") 
