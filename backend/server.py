@@ -70,7 +70,8 @@ app = Flask(__name__)
 
 # Configure CORS for Vercel frontend
 CORS(app, origins=[
-    "https://podcastfy-frontend.vercel.app",  # Update with your Vercel URL
+    "https://podcastfy-opxm6bilx-latent-labs1.vercel.app",  # Production Vercel URL
+    "https://podcastfy-3iyy3vo66-latent-labs1.vercel.app",  # Preview Vercel URL
     "http://localhost:3000",  # Local development
     "http://localhost:5000"   # Local development
 ])
@@ -105,7 +106,7 @@ def root():
             'audio': '/api/audio/<filename>',
             'transcript': '/api/transcript/<filename>'
         },
-        'frontend': 'https://podcastfy-frontend.vercel.app'
+        'frontend': 'https://podcastfy-opxm6bilx-latent-labs1.vercel.app'
     })
 
 @app.route('/api/health', methods=['GET'])
