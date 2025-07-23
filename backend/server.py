@@ -179,11 +179,14 @@ def generate_podcast_api():
                 topic_content = source
         
         # Call generate_podcast with appropriate parameters
+        # Temporarily use a different model to avoid Google AI issues
         result = generate_podcast(
             urls=urls_list if urls_list else None,
             text=text_content,
             topic=topic_content,
-            tts_model=data.get('tts_model', 'en-US-Neural2-F')
+            tts_model=data.get('tts_model', 'en-US-Neural2-F'),
+            llm_model_name="gpt-3.5-turbo",  # Use OpenAI instead of Gemini
+            api_key_label="OPENAI_API_KEY"   # Use OpenAI API key
         )
         
         if result and result.get('audio_file'):
