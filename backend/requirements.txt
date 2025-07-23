@@ -3,7 +3,7 @@ uvicorn[standard]
 pydub>=0.25.1
 openai
 elevenlabs
-google-generativeai
+google-generativeai>=0.8.0
 ffmpeg-python
 python-dotenv
 Flask==2.3.3
@@ -28,13 +28,13 @@ pandoc==2.4
 types-pyyaml==6.0.12.20240917
 
 # LangChain ecosystem (required by podcastfy)
-langchain==0.3.7
-langchain-core==0.3.15
-langchain-community==0.3.5
-langchain-google-genai==2.0.4
-langchain-google-vertexai==2.0.7
-langchain-text-splitters==0.3.2
-litellm==1.52.2
+langchain>=0.3.7
+langchain-core>=0.3.15
+langchain-community>=0.3.5
+langchain-google-genai>=2.0.4
+langchain-google-vertexai>=2.0.7
+langchain-text-splitters>=0.3.2
+litellm>=1.52.2
 
 # Optional: LangSmith
-langsmith==0.1.141 
+langsmith>=0.1.141 
