@@ -9,10 +9,10 @@ provides methods to generate and save the generated content.
 import os
 from typing import Optional, Dict, Any, List
 import re
+import os
 
 
 from langchain_community.chat_models import ChatLiteLLM
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.llms.llamafile import Llamafile
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -61,13 +61,22 @@ class LLMBackend:
         elif (
             "gemini" in self.model_name.lower()
         ):  # keeping original gemini as a special case while we build confidence on LiteLLM
-
-            self.llm = ChatGoogleGenerativeAI(
-                api_key=os.environ["GEMINI_API_KEY"],
-                model=model_name,
-                max_output_tokens=max_output_tokens,
-                **common_params,
-            )
+            try:
+                from langchain_google_genai import ChatGoogleGenerativeAI
+                self.llm = ChatGoogleGenerativeAI(
+                    api_key=os.environ["GEMINI_API_KEY"],
+                    model=model_name,
+                    max_output_tokens=max_output_tokens,
+                    **common_params,
+                )
+            except ImportError:
+                # Fallback to LiteLLM if Google AI is not available
+                logger.warning("Google Generative AI not available, falling back to LiteLLM")
+                self.llm = ChatLiteLLM(
+                    model="gpt-3.5-turbo",  # Fallback model
+                    temperature=temperature,
+                    api_key=os.environ.get("OPENAI_API_KEY", ""),
+                )
         else:  # user should set api_key_label from input
             self.llm = ChatLiteLLM(
                 model=self.model_name,
