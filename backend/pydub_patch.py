@@ -8,6 +8,7 @@ import sys
 import warnings
 import re
 import types
+import os
 
 def fix_pydub_warnings():
     """Fix pydub regex warnings"""
@@ -41,14 +42,6 @@ def fix_google_genai_pydantic():
                 pass
             
             pydantic.BaseCache = BaseCache
-        
-        # Try to rebuild the model
-        try:
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            if hasattr(ChatGoogleGenerativeAI, 'model_rebuild'):
-                ChatGoogleGenerativeAI.model_rebuild()
-        except ImportError:
-            pass
             
     except ImportError:
         pass
