@@ -2,45 +2,61 @@
 """
 Pydub patch for Python 3.13 compatibility
 Fixes missing audioop module and escape sequence warnings
+Also fixes Google Generative AI Pydantic issues
 """
-
 import sys
 import warnings
 import re
 import types
 
-# Fix escape sequence warnings in pydub
 def fix_pydub_warnings():
-    """Fix invalid escape sequence warnings in pydub"""
+    """Fix pydub regex warnings"""
     try:
         import pydub.utils
-        # Fix the regex patterns that have invalid escape sequences
+        # Fix the problematic regex patterns
         if hasattr(pydub.utils, '_parse_ffmpeg_output'):
-            # Replace the problematic regex patterns
-            original_parse = pydub.utils._parse_ffmpeg_output
+            original_func = pydub.utils._parse_ffmpeg_output
             
             def fixed_parse_ffmpeg_output(output):
-                # Fix the regex patterns
-                lines = output.split('\n')
-                result = []
-                for line in lines:
-                    # Fix the problematic patterns
-                    line = re.sub(r'([su]([0-9]{1,2})p?) \(([0-9]{1,2}) bit\)$', r'\1 (\3 bit)', line)
-                    line = re.sub(r'([su]([0-9]{1,2})p?)( \(default\))?$', r'\1\3', line)
-                    line = re.sub(r'(flt)p?( \(default\))?$', r'\1\2', line)
-                    line = re.sub(r'(dbl)p?( \(default\))?$', r'\1\2', line)
-                    result.append(line)
-                return original_parse('\n'.join(result))
+                # Replace problematic regex patterns with raw strings
+                output = re.sub(r'([su]([0-9]{1,2})p?) \(([0-9]{1,2}) bit\)$', r'\1 (\3 bit)', output)
+                output = re.sub(r'([su]([0-9]{1,2})p?)( \(default\))?$', r'\1\3', output)
+                output = re.sub(r'(flt)p?( \(default\))?$', r'\1\2', output)
+                output = re.sub(r'(dbl)p?( \(default\))?$', r'\1\2', output)
+                return original_func(output)
             
             pydub.utils._parse_ffmpeg_output = fixed_parse_ffmpeg_output
     except ImportError:
         pass
 
-# Create a dummy audioop module if it doesn't exist
+def fix_google_genai_pydantic():
+    """Fix Google Generative AI Pydantic issues"""
+    try:
+        import pydantic
+        from pydantic import BaseModel
+        
+        # Create a simple BaseCache class if it doesn't exist
+        if not hasattr(pydantic, 'BaseCache'):
+            class BaseCache(BaseModel):
+                pass
+            
+            pydantic.BaseCache = BaseCache
+        
+        # Try to rebuild the model
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+            if hasattr(ChatGoogleGenerativeAI, 'model_rebuild'):
+                ChatGoogleGenerativeAI.model_rebuild()
+        except ImportError:
+            pass
+            
+    except ImportError:
+        pass
+
 try:
     import audioop
 except ImportError:
-    # Create a dummy module
+    # Create a dummy audioop module if it doesn't exist
     class DummyAudioop:
         def __getattr__(self, name):
             def dummy_function(*args, **kwargs):
@@ -55,13 +71,12 @@ except ImportError:
     # Add it to sys.modules so pydub can import it
     sys.modules['audioop'] = audioop
 
-# Also handle pyaudioop
 try:
     import pyaudioop
 except ImportError:
     sys.modules['pyaudioop'] = audioop
 
-# Apply the fixes
+# Apply all fixes
 fix_pydub_warnings()
-
-print("Pydub patch applied successfully for Python 3.13 compatibility") 
+fix_google_genai_pydantic()
+print("Pydub and Google GenAI patches applied successfully for Python 3.13 compatibility") 
