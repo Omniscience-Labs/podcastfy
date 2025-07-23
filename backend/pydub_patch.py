@@ -32,19 +32,9 @@ def fix_pydub_warnings():
 
 def fix_google_genai_pydantic():
     """Fix Google Generative AI Pydantic issues"""
-    try:
-        import pydantic
-        from pydantic import BaseModel
-        
-        # Create a simple BaseCache class if it doesn't exist
-        if not hasattr(pydantic, 'BaseCache'):
-            class BaseCache(BaseModel):
-                pass
-            
-            pydantic.BaseCache = BaseCache
-            
-    except ImportError:
-        pass
+    # This function is kept for compatibility but the main fix is now in content_generator.py
+    # The ChatGoogleGenerativeAI import is now wrapped in try/except with fallback to LiteLLM
+    pass
 
 try:
     import audioop

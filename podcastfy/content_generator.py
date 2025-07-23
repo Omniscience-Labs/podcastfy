@@ -7,10 +7,9 @@ provides methods to generate and save the generated content.
 """
 
 import os
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 import re
 import os
-
 
 from langchain_community.chat_models import ChatLiteLLM
 from langchain_community.llms.llamafile import Llamafile
@@ -62,6 +61,7 @@ class LLMBackend:
             "gemini" in self.model_name.lower()
         ):  # keeping original gemini as a special case while we build confidence on LiteLLM
             try:
+                # Try to use ChatGoogleGenerativeAI, but fallback to LiteLLM if there are issues
                 from langchain_google_genai import ChatGoogleGenerativeAI
                 self.llm = ChatGoogleGenerativeAI(
                     api_key=os.environ["GEMINI_API_KEY"],
@@ -69,9 +69,9 @@ class LLMBackend:
                     max_output_tokens=max_output_tokens,
                     **common_params,
                 )
-            except ImportError:
-                # Fallback to LiteLLM if Google AI is not available
-                logger.warning("Google Generative AI not available, falling back to LiteLLM")
+            except (ImportError, Exception) as e:
+                # Fallback to LiteLLM if Google AI is not available or has issues
+                logger.warning(f"Google Generative AI not available or has issues ({str(e)}), falling back to LiteLLM")
                 self.llm = ChatLiteLLM(
                     model="gpt-3.5-turbo",  # Fallback model
                     temperature=temperature,
