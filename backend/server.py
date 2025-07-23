@@ -166,7 +166,7 @@ def generate_podcast_api():
         
         # Call the podcast generation function
         result = generate_podcast(
-            content_source=content_sources,
+            content_sources=content_sources,
             voice=data.get('tts_model', 'en-US-Neural2-F'),
             language='en',
             output_dir=str(AUDIO_DIR)
