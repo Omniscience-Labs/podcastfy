@@ -164,12 +164,26 @@ def generate_podcast_api():
         # Generate podcast
         logger.info(f"Generating podcast from {len(content_sources)} sources")
         
-        # Call the podcast generation function
+        # Call the podcast generation function with the first content source
+        # For now, we'll use the first text content or topic
+        text_content = None
+        topic_content = None
+        urls_list = []
+        
+        for source in content_sources:
+            if source.startswith('http'):
+                urls_list.append(source)
+            elif len(source) > 100:  # Likely text content
+                text_content = source
+            else:  # Likely topic
+                topic_content = source
+        
+        # Call generate_podcast with appropriate parameters
         result = generate_podcast(
-            content_sources=content_sources,
-            voice=data.get('tts_model', 'en-US-Neural2-F'),
-            language='en',
-            output_dir=str(AUDIO_DIR)
+            urls=urls_list if urls_list else None,
+            text=text_content,
+            topic=topic_content,
+            tts_model=data.get('tts_model', 'en-US-Neural2-F')
         )
         
         if result and result.get('audio_file'):
