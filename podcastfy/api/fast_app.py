@@ -5,6 +5,25 @@ This module provides REST endpoints for podcast generation and audio serving,
 with configuration management and temporary file handling.
 """
 
+# Fix Pydantic issues before importing LangChain components
+def fix_pydantic_issues():
+    """Fix Pydantic issues with LangChain components"""
+    try:
+        import pydantic
+        from pydantic import BaseModel
+        
+        # Create missing types that Pydantic needs
+        if not hasattr(pydantic, 'BaseCache'):
+            class BaseCache(BaseModel):
+                pass
+            pydantic.BaseCache = BaseCache
+            
+    except ImportError:
+        pass
+
+# Apply the fix before any other imports
+fix_pydantic_issues()
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 import os
