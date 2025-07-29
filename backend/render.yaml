@@ -3,7 +3,7 @@ services:
     name: podcastfy-backend
     runtime: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "bash start.sh"
+    startCommand: "bash backend/start_flask.sh"
     plan: free
     pythonVersion: 3.11
     envVars:
@@ -21,3 +21,5 @@ services:
         value: "en"
       - key: LOG_LEVEL
         value: "INFO"
+      - key: PORT
+        value: "8000"
