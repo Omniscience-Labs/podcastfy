@@ -68,12 +68,15 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 
-# Configure CORS for Vercel frontend
+# Configure CORS for frontend
 CORS(app, origins=[
     "https://podcastfy-opxm6bilx-latent-labs1.vercel.app",  # Production Vercel URL
     "https://podcastfy-3iyy3vo66-latent-labs1.vercel.app",  # Preview Vercel URL
     "http://localhost:3000",  # Local development
-    "http://localhost:5000"   # Local development
+    "http://localhost:5000",  # Local development
+    "http://127.0.0.1:5500",  # Live Server
+    "http://localhost:8080",  # Common dev server
+    "null"  # File protocol for local HTML files
 ])
 
 # Vercel-specific configuration
@@ -122,16 +125,22 @@ def health_check():
 def generate_podcast_api():
     """Generate podcast from various content sources"""
     try:
-        # Check if request has content
-        if not request.form and not request.files:
-            return jsonify({'success': False, 'error': 'No content provided'}), 400
-        
-        # Parse JSON data
-        data = json.loads(request.form.get('data', '{}'))
-        
-        # Handle file uploads
-        pdf_files = request.files.getlist('pdf_files')
-        image_files = request.files.getlist('image_files')
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+            pdf_files = []
+            image_files = []
+        else:
+            # Check if request has content
+            if not request.form and not request.files:
+                return jsonify({'success': False, 'error': 'No content provided'}), 400
+            
+            # Parse JSON data
+            data = json.loads(request.form.get('data', '{}'))
+            # Handle file uploads
+            pdf_files = request.files.getlist('pdf_files')
+            image_files = request.files.getlist('image_files')
+
         
         # Save uploaded files
         saved_files = []
@@ -194,7 +203,20 @@ def generate_podcast_api():
             if isinstance(result, str):
                 # Result is a file path
                 audio_file = result
-                transcript = "Transcript not available in this format"
+                # Try to find the corresponding transcript file
+                try:
+                    # Look for the most recent transcript file
+                    transcript_files = list(TRANSCRIPT_DIR.glob("*.txt"))
+                    if transcript_files:
+                        # Get the most recent transcript file
+                        latest_transcript = max(transcript_files, key=os.path.getctime)
+                        with open(latest_transcript, 'r') as f:
+                            transcript = f.read()
+                    else:
+                        transcript = "Transcript not available"
+                except Exception as e:
+                    logger.warning(f"Could not load transcript: {e}")
+                    transcript = "Transcript not available"
             elif isinstance(result, dict) and result.get('audio_file'):
                 # Result is a dictionary with audio_file
                 audio_file = result['audio_file']
@@ -206,10 +228,14 @@ def generate_podcast_api():
             else:
                 return jsonify({'success': False, 'error': 'Invalid result format'}), 500
             
-            # Create response with file URLs
-            audio_url = f"/api/audio/{Path(audio_file).name}"
+            # Create response with absolute file URLs
+            audio_filename = Path(audio_file).name
             transcript_filename = f"{uuid.uuid4()}.txt"
-            transcript_url = f"/api/transcript/{transcript_filename}"
+            
+            # Get the base URL from the request
+            base_url = request.host_url.rstrip('/')
+            audio_url = f"{base_url}/api/audio/{audio_filename}"
+            transcript_url = f"{base_url}/api/transcript/{transcript_filename}"
             
             # Save transcript
             transcript_path = TRANSCRIPT_DIR / transcript_filename
