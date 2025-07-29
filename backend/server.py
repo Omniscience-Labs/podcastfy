@@ -189,18 +189,32 @@ def generate_podcast_api():
             api_key_label="OPENAI_API_KEY"   # Use OpenAI API key
         )
         
-        if result and result.get('audio_file'):
-            audio_file = result['audio_file']
-            transcript = result.get('transcript', 'No transcript available')
+        if result:
+            # Handle different result types
+            if isinstance(result, str):
+                # Result is a file path
+                audio_file = result
+                transcript = "Transcript not available in this format"
+            elif isinstance(result, dict) and result.get('audio_file'):
+                # Result is a dictionary with audio_file
+                audio_file = result['audio_file']
+                transcript = result.get('transcript', 'No transcript available')
+            elif hasattr(result, 'audio_path'):
+                # Result is an object with audio_path attribute
+                audio_file = result.audio_path
+                transcript = getattr(result, 'transcript', 'No transcript available')
+            else:
+                return jsonify({'success': False, 'error': 'Invalid result format'}), 500
             
             # Create response with file URLs
             audio_url = f"/api/audio/{Path(audio_file).name}"
-            transcript_url = f"/api/transcript/{uuid.uuid4()}.txt"
+            transcript_filename = f"{uuid.uuid4()}.txt"
+            transcript_url = f"/api/transcript/{transcript_filename}"
             
             # Save transcript
-            transcript_path = TRANSCRIPT_DIR / f"{uuid.uuid4()}.txt"
+            transcript_path = TRANSCRIPT_DIR / transcript_filename
             with open(transcript_path, 'w') as f:
-                f.write(transcript)
+                f.write(str(transcript))
             
             return jsonify({
                 'success': True,
