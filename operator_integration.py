@@ -41,6 +41,11 @@ class PodcastfyOperatorTool:
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         
+        # Determine if we're using Flask (localhost) or FastAPI (render) endpoints
+        self.is_flask = "localhost" in base_url or "127.0.0.1" in base_url
+        self.health_endpoint = "/api/health" if self.is_flask else "/health"
+        self.generate_endpoint = "/api/generate" if self.is_flask else "/generate"
+        
     def generate_podcast(
         self,
         urls: Optional[List[str]] = None,
@@ -90,12 +95,23 @@ class PodcastfyOperatorTool:
             payload["topic"] = topic
             
         try:
-            # Make API request - FastAPI version uses /generate instead of /api/generate
-            response = self.session.post(
-                f"{self.base_url}/generate",
-                json=payload,
-                timeout=300  # 5 minutes timeout for podcast generation
-            )
+            if self.is_flask:
+                # Flask backend expects form data
+                form_data = {
+                    'data': json.dumps(payload)
+                }
+                response = self.session.post(
+                    f"{self.base_url}{self.generate_endpoint}",
+                    data=form_data,
+                    timeout=300
+                )
+            else:
+                # FastAPI backend expects JSON
+                response = self.session.post(
+                    f"{self.base_url}{self.generate_endpoint}",
+                    json=payload,
+                    timeout=300
+                )
             
             if response.status_code == 200:
                 data = response.json()
@@ -136,7 +152,7 @@ class PodcastfyOperatorTool:
         """
         try:
             # FastAPI version uses /health instead of /api/health
-            response = self.session.get(f"{self.base_url}/health", timeout=10)
+            response = self.session.get(f"{self.base_url}{self.health_endpoint}", timeout=10)
             if response.status_code == 200:
                 return response.json()
             else:
