@@ -89,6 +89,7 @@ async def generate_podcast_endpoint(data: dict):
             )
 
         # Set environment variables (only if provided in request)
+        # This ensures we don't overwrite existing env vars with None values
         if data.get('openai_key'):
             os.environ['OPENAI_API_KEY'] = data.get('openai_key')
         
