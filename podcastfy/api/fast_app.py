@@ -622,17 +622,79 @@ async def generate_podcast_endpoint(data: dict):
                 filename = f"podcast_{os.urandom(8).hex()}.mp3"
                 output_path = os.path.join(TEMP_DIR, filename)
                 shutil.copy2(result['audio_file'], output_path)
-                return {"success": True, "audio_url": f"/audio/{filename}"}
+                
+                response = {"success": True, "audio_url": f"/audio/{filename}"}
+                
+                # Try to find and include transcript
+                if result.get('transcript'):
+                    response['transcript'] = result['transcript']
+                else:
+                    # Try to read transcript from the most recent transcript file
+                    try:
+                        transcript_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data", "transcripts")
+                        if os.path.exists(transcript_dir):
+                            transcript_files = [f for f in os.listdir(transcript_dir) if f.endswith('.txt')]
+                            if transcript_files:
+                                # Get the most recent transcript file
+                                latest_transcript = max([os.path.join(transcript_dir, f) for f in transcript_files], 
+                                                      key=os.path.getctime)
+                                with open(latest_transcript, 'r', encoding='utf-8') as f:
+                                    response['transcript'] = f.read()
+                    except Exception as e:
+                        logger.warning(f"Could not load transcript: {e}")
+                        response['transcript'] = "Transcript not available"
+                
+                return response
         elif isinstance(result, str) and os.path.isfile(result):
             filename = f"podcast_{os.urandom(8).hex()}.mp3"
             output_path = os.path.join(TEMP_DIR, filename)
             shutil.copy2(result, output_path)
-            return {"success": True, "audio_url": f"/audio/{filename}"}
+            
+            response = {"success": True, "audio_url": f"/audio/{filename}"}
+            
+            # Try to read transcript from the most recent transcript file
+            try:
+                transcript_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data", "transcripts")
+                if os.path.exists(transcript_dir):
+                    transcript_files = [f for f in os.listdir(transcript_dir) if f.endswith('.txt')]
+                    if transcript_files:
+                        # Get the most recent transcript file
+                        latest_transcript = max([os.path.join(transcript_dir, f) for f in transcript_files], 
+                                              key=os.path.getctime)
+                        with open(latest_transcript, 'r', encoding='utf-8') as f:
+                            response['transcript'] = f.read()
+            except Exception as e:
+                logger.warning(f"Could not load transcript: {e}")
+                response['transcript'] = "Transcript not available"
+            
+            return response
         elif hasattr(result, 'audio_path'):
             filename = f"podcast_{os.urandom(8).hex()}.mp3"
             output_path = os.path.join(TEMP_DIR, filename)
             shutil.copy2(result.audio_path, output_path)
-            return {"success": True, "audio_url": f"/audio/{filename}"}
+            
+            response = {"success": True, "audio_url": f"/audio/{filename}"}
+            
+            # Try to get transcript from result object or file
+            if hasattr(result, 'transcript'):
+                response['transcript'] = result.transcript
+            else:
+                # Try to read transcript from the most recent transcript file
+                try:
+                    transcript_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data", "transcripts")
+                    if os.path.exists(transcript_dir):
+                        transcript_files = [f for f in os.listdir(transcript_dir) if f.endswith('.txt')]
+                        if transcript_files:
+                            # Get the most recent transcript file
+                            latest_transcript = max([os.path.join(transcript_dir, f) for f in transcript_files], 
+                                                  key=os.path.getctime)
+                            with open(latest_transcript, 'r', encoding='utf-8') as f:
+                                response['transcript'] = f.read()
+                except Exception as e:
+                    logger.warning(f"Could not load transcript: {e}")
+                    response['transcript'] = "Transcript not available"
+            
+            return response
         else:
             raise HTTPException(status_code=500, detail="Invalid result format")
 
@@ -661,8 +723,26 @@ async def serve_audio(filename: str):
     """Get File Audio From the Server"""
     file_path = os.path.join(TEMP_DIR, filename)
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(file_path)
+        # Return a helpful error message instead of just 404
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": "Audio file not found",
+                "message": "This podcast file is no longer available. Audio files are temporary and may be removed after server restarts.",
+                "suggestion": "Please regenerate the podcast to get a new download link.",
+                "regenerate_url": "/generate"
+            }
+        )
+    
+    # Add proper headers for audio streaming and download
+    return FileResponse(
+        file_path,
+        media_type="audio/mpeg",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Cache-Control": "public, max-age=3600"  # Cache for 1 hour
+        }
+    )
 
 @app.get("/health")
 async def healthcheck():

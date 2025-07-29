@@ -253,8 +253,30 @@ class PodcastfyUI {
             this.currentTranscript = null;
         }
         
-        // Update audio player
+        // Update audio player with error handling
         this.audioPlayer.src = this.currentAudioUrl;
+        
+        // Add error handling for audio player
+        this.audioPlayer.onerror = () => {
+            const errorDiv = this.audioPlayer.parentNode;
+            errorDiv.innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl mb-2"></i>
+                    <h4 class="font-semibold text-red-800 mb-2">Audio File Not Available</h4>
+                    <p class="text-red-700 text-sm mb-3">
+                        The audio file is no longer available on the server. This can happen after server restarts.
+                    </p>
+                    <button onclick="window.location.reload()" 
+                            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 mr-2">
+                        <i class="fas fa-redo mr-1"></i>Regenerate Podcast
+                    </button>
+                    <button onclick="navigator.clipboard.writeText('${this.currentAudioUrl}')" 
+                            class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-copy mr-1"></i>Copy Link Anyway
+                    </button>
+                </div>
+            `;
+        };
         
         // Show results
         this.showResults();
@@ -294,44 +316,255 @@ class PodcastfyUI {
         this.errorSection.style.display = 'none';
     }
 
-    downloadAudio() {
+    showSuccess(message) {
+        // Create success notification if it doesn't exist
+        let successSection = document.getElementById('successSection');
+        if (!successSection) {
+            successSection = document.createElement('div');
+            successSection.id = 'successSection';
+            successSection.className = 'hidden bg-green-50 border border-green-200 rounded-lg p-4 mb-8';
+            successSection.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span id="successMessage" class="text-green-700"></span>
+                </div>
+            `;
+            this.errorSection.parentNode.insertBefore(successSection, this.errorSection);
+        }
+        
+        const successMessage = document.getElementById('successMessage');
+        successMessage.textContent = message;
+        successSection.style.display = 'block';
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            successSection.style.display = 'none';
+        }, 3000);
+    }
+
+    showShareModal(shareText, audioUrl, podcastName) {
+        // Create modal HTML
+        const modalHtml = `
+            <div id="shareModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="this.remove()">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">
+                            <i class="fas fa-share mr-2"></i>Share Your Podcast
+                        </h3>
+                        <button onclick="document.getElementById('shareModal').remove()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Direct Audio Link -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                🎵 Direct Audio Link
+                            </label>
+                            <div class="flex">
+                                <input type="text" value="${audioUrl}" readonly 
+                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-sm">
+                                <button onclick="this.copyToClipboard('${audioUrl}', 'Audio link')" 
+                                        class="px-3 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="mt-1 text-xs text-orange-600 link-status">
+                                ⚠️ This link is temporary and may expire after server restarts
+                            </div>
+                        </div>
+                        
+                        <!-- Full Share Message -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                💬 Complete Share Message
+                            </label>
+                            <textarea readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm h-20">${shareText}</textarea>
+                            <button onclick="this.copyToClipboard(\`${shareText}\`, 'Share message')" 
+                                    class="mt-2 w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                                <i class="fas fa-copy mr-1"></i>Copy Full Message
+                            </button>
+                        </div>
+                        
+                        <!-- Best Practices Info -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm">
+                            <h4 class="font-medium text-blue-800 mb-1">📱 Best Sharing Practices:</h4>
+                            <ul class="text-blue-700 text-xs space-y-1">
+                                <li>• For permanent sharing: Use "Download & Share" to send the actual file</li>
+                                <li>• For quick sharing: Copy the direct link (may expire later)</li>
+                                <li>• Include regeneration instructions for recipients</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Quick Share Options -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="this.shareViaEmail('${podcastName}', '${audioUrl}')" 
+                                    class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                                <i class="fas fa-envelope mr-1"></i>Email Link
+                            </button>
+                            <button onclick="this.downloadAndShare('${audioUrl}', '${podcastName}')" 
+                                    class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                                <i class="fas fa-download mr-1"></i>Download & Share
+                            </button>
+                        </div>
+                        
+                        <!-- Regeneration Instructions -->
+                        <div class="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs">
+                            <h4 class="font-medium text-amber-800 mb-1">🔄 If Link Stops Working:</h4>
+                            <p class="text-amber-700">
+                                Share this regeneration guide: Visit <strong>${window.location.origin}</strong>, 
+                                enter the same content/topic, and generate a new podcast.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add modal to page
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Add methods to modal buttons
+        const modal = document.getElementById('shareModal');
+        modal.copyToClipboard = (text, type) => {
+            navigator.clipboard.writeText(text).then(() => {
+                this.showSuccess(`${type} copied to clipboard!`);
+            });
+        };
+        
+        modal.shareViaEmail = (title, url) => {
+            const subject = encodeURIComponent(`🎙️ ${title} - AI Generated Podcast`);
+            const body = encodeURIComponent(`Hi!\n\nI created this podcast using AI and wanted to share it with you:\n\n"${title}"\n\n🎵 Listen here: ${url}\n\n⚠️ Note: This link provides direct audio download. If the link doesn't work (files are temporary), you can regenerate the podcast at:\n${window.location.origin}\n\n✨ Created with Podcastfy - AI Podcast Generator`);
+            window.open(`mailto:?subject=${subject}&body=${body}`);
+        };
+        
+        modal.downloadAndShare = async (url, name) => {
+            // Trigger download first
+            await this.downloadAudio();
+            // Show instructions
+            this.showSuccess('Podcast downloaded! You can now attach the file to emails or messages.');
+            modal.remove();
+        };
+        
+        // Test if the audio link is still working
+        modal.testAudioLink = async (url) => {
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        };
+        
+        // Add real-time link status checking
+        modal.testAudioLink(audioUrl).then(isWorking => {
+            const linkStatus = modal.querySelector('.link-status');
+            if (linkStatus) {
+                if (isWorking) {
+                    linkStatus.innerHTML = '<span class="text-green-600">✅ Link is currently working</span>';
+                } else {
+                    linkStatus.innerHTML = '<span class="text-red-600">❌ Link may not be working - consider downloading instead</span>';
+                }
+            }
+        });
+    }
+
+    async downloadAudio() {
         if (this.currentAudioUrl) {
-            const a = document.createElement('a');
-            a.href = this.currentAudioUrl;
-            a.download = 'podcast.mp3';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            try {
+                // Show download progress
+                const originalBtn = this.downloadBtn;
+                const originalText = originalBtn.innerHTML;
+                originalBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Downloading...';
+                originalBtn.disabled = true;
+
+                // Generate a better filename with timestamp
+                const now = new Date();
+                const timestamp = now.toISOString().slice(0, 19).replace(/[:]/g, '-');
+                const podcastName = this.podcastName.value || 'Podcastfy';
+                const filename = `${podcastName}-${timestamp}.mp3`;
+
+                // For cross-origin downloads, we need to fetch and create blob
+                const response = await fetch(this.currentAudioUrl);
+                if (!response.ok) throw new Error('Download failed');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                // Show success message
+                this.showSuccess('Podcast downloaded successfully!');
+
+                // Reset button
+                originalBtn.innerHTML = originalText;
+                originalBtn.disabled = false;
+            } catch (error) {
+                console.error('Download failed:', error);
+                this.showError('Download failed. Please try again.');
+                
+                // Reset button
+                this.downloadBtn.innerHTML = '<i class="fas fa-download mr-1"></i>Download MP3';
+                this.downloadBtn.disabled = false;
+            }
         }
     }
 
     downloadTranscript() {
         if (this.currentTranscript) {
+            // Generate a better filename with timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/[:]/g, '-');
+            const podcastName = this.podcastName.value || 'Podcastfy';
+            const filename = `${podcastName}-transcript-${timestamp}.txt`;
+            
             const blob = new Blob([this.currentTranscript], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'transcript.txt';
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+            
+            this.showSuccess('Transcript downloaded successfully!');
         }
     }
 
-    sharePodcast() {
+    async sharePodcast() {
         if (this.currentAudioUrl) {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Generated Podcast',
-                    text: 'Check out this AI-generated podcast!',
-                    url: this.currentAudioUrl
-                });
-            } else {
-                // Fallback: copy URL to clipboard
-                navigator.clipboard.writeText(this.currentAudioUrl).then(() => {
-                    alert('Podcast URL copied to clipboard!');
-                });
+            const podcastName = this.podcastName.value || 'Podcastfy Podcast';
+            const shareText = `🎙️ Check out this AI-generated podcast: "${podcastName}" created with Podcastfy!`;
+            const shareUrl = this.currentAudioUrl;
+            
+            // Create a comprehensive share message
+            const fullShareText = `${shareText}\n\n🎵 Listen: ${shareUrl}\n\n💡 Created with AI at: ${window.location.origin}`;
+
+            try {
+                if (navigator.share && navigator.canShare && navigator.canShare({ url: shareUrl })) {
+                    // Use native share API if available
+                    await navigator.share({
+                        title: podcastName,
+                        text: shareText,
+                        url: shareUrl
+                    });
+                } else {
+                    // Enhanced fallback with multiple options
+                    this.showShareModal(fullShareText, shareUrl, podcastName);
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Share failed:', error);
+                    this.showShareModal(fullShareText, shareUrl, podcastName);
+                }
             }
         }
     }

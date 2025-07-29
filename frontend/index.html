@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎙️ Podcastfy - AI Podcast Generator</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎙️%3C/text%3E%3C/svg%3E">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -226,13 +228,18 @@
                 <audio id="audioPlayer" controls class="w-full">
                     Your browser does not support the audio element.
                 </audio>
-                <div class="mt-4 flex space-x-4">
-                    <button id="downloadBtn" class="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-download mr-1"></i>Download MP3
-                    </button>
-                    <button id="shareBtn" class="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-share mr-1"></i>Share
-                    </button>
+                <div class="mt-4 space-y-3">
+                    <div class="flex space-x-4">
+                        <button id="downloadBtn" class="flex-1 bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-download mr-1"></i>Download to Computer
+                        </button>
+                        <button id="shareBtn" class="flex-1 bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-share mr-1"></i>Share with Others
+                        </button>
+                    </div>
+                    <div class="text-xs text-white opacity-75">
+                        💡 Download saves to your computer. Share creates links for messages & emails.
+                    </div>
                 </div>
             </div>
 
