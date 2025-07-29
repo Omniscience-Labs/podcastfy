@@ -17,6 +17,21 @@ def fix_pydantic_issues():
             class BaseCache(BaseModel):
                 pass
             pydantic.BaseCache = BaseCache
+        
+        # Try to rebuild LangChain models after importing them
+        try:
+            from langchain_community.chat_models import ChatLiteLLM
+            if hasattr(ChatLiteLLM, 'model_rebuild'):
+                ChatLiteLLM.model_rebuild()
+        except (ImportError, Exception):
+            pass
+            
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+            if hasattr(ChatGoogleGenerativeAI, 'model_rebuild'):
+                ChatGoogleGenerativeAI.model_rebuild()
+        except (ImportError, Exception):
+            pass
             
     except ImportError:
         pass
@@ -159,7 +174,7 @@ async def generate_podcast_endpoint(data: dict):
         # print(conversation_config)
         
 
-        # Generate podcast
+        # Generate podcast - use gemini model to avoid ChatLiteLLM Pydantic issues
         result = generate_podcast(
             urls=urls,
             text=text,
@@ -167,6 +182,8 @@ async def generate_podcast_endpoint(data: dict):
             conversation_config=conversation_config,
             tts_model=tts_model,
             longform=bool(data.get('is_long_form', False)),
+            llm_model_name="gemini-1.5-pro-latest",  # Use Gemini instead of default
+            api_key_label="GEMINI_API_KEY"
         )
         # Handle the result
         if isinstance(result, str) and os.path.isfile(result):
