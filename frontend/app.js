@@ -153,34 +153,27 @@ class PodcastfyUI {
 
     async callPodcastfyAPI(data) {
         try {
-            // Create FormData for file uploads
-            const formData = new FormData();
+            // Prepare JSON data for FastAPI backend
+            const requestData = { ...data };
             
-            // Add JSON data
-            const jsonData = { ...data };
-            
-            // Remove files from JSON data and add to FormData
+            // Note: File uploads not supported in this version - FastAPI backend expects JSON only
             if (data.pdf_files) {
-                data.pdf_files.forEach(file => {
-                    formData.append('pdf_files', file);
-                });
-                delete jsonData.pdf_files;
+                console.warn('PDF file uploads not supported with FastAPI backend');
+                delete requestData.pdf_files;
             }
             
             if (data.image_files) {
-                data.image_files.forEach(file => {
-                    formData.append('image_files', file);
-                });
-                delete jsonData.image_files;
+                console.warn('Image file uploads not supported with FastAPI backend');
+                delete requestData.image_files;
             }
             
-            // Add JSON data as a string
-            formData.append('data', JSON.stringify(jsonData));
-            
-            // Make the API call to Render backend
-            const response = await fetch(`${this.API_BASE_URL}/api/generate`, {
+            // Make the API call to Render backend (FastAPI uses /generate, not /api/generate)
+            const response = await fetch(`${this.API_BASE_URL}/generate`, {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
             });
             
             if (!response.ok) {
