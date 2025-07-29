@@ -219,12 +219,67 @@ async def generate_podcast_direct_api(urls=None, text=None, topic=None, tts_mode
         import openai
         import edge_tts
         import asyncio
+        import requests
+        from bs4 import BeautifulSoup
         
         logger.info(f"Direct API fallback: generating content for topic='{topic}', text_length={len(text) if text else 0}, urls={len(urls) if urls else 0}")
         
+        # Extract content from URLs if provided
+        url_content = ""
+        if urls:
+            for url in urls[:3]:  # Limit to first 3 URLs for performance
+                try:
+                    logger.info(f"Extracting content from URL: {url}")
+                    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+                    response = requests.get(url, headers=headers, timeout=15)
+                    response.raise_for_status()
+                    
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    
+                    # Remove unwanted elements
+                    for element in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'noscript', 'iframe']):
+                        element.decompose()
+                    
+                    # Extract main content
+                    main_content = soup.find('main') or soup.find('article') or soup.find('div', class_=lambda x: x and ('content' in x or 'article' in x or 'post' in x))
+                    if main_content:
+                        content_text = main_content.get_text(separator=' ', strip=True)
+                    else:
+                        content_text = soup.get_text(separator=' ', strip=True)
+                    
+                    # Clean and limit content
+                    content_text = ' '.join(content_text.split())  # Remove extra whitespace
+                    content_text = content_text[:3000]  # Limit to 3000 characters per URL
+                    
+                    if content_text:
+                        url_content += f"\n\nContent from {url}:\n{content_text}"
+                        logger.info(f"Successfully extracted {len(content_text)} characters from {url}")
+                    else:
+                        logger.warning(f"No content extracted from {url}")
+                        
+                except Exception as url_error:
+                    logger.warning(f"Failed to extract content from {url}: {str(url_error)}")
+                    continue
+        
         # Generate content using direct OpenAI API
         if topic:
-            content_prompt = f"""Create an engaging podcast conversation about: {topic}
+            if url_content:
+                content_prompt = f"""Create an engaging podcast conversation about: {topic}
+
+Using this additional context from web sources:
+{url_content}
+
+Please create a natural dialogue between two hosts discussing this topic. 
+Format it as:
+
+Host 1: [First speaker's content]
+Host 2: [Second speaker's response]
+Host 1: [Continuing the conversation]
+...
+
+Make it informative, engaging, and conversational. Incorporate the key insights from the provided context. Keep it around 400-600 words total."""
+            else:
+                content_prompt = f"""Create an engaging podcast conversation about: {topic}
 
 Please create a natural dialogue between two hosts discussing this topic. 
 Format it as:
@@ -239,7 +294,7 @@ Make it informative, engaging, and conversational. Keep it around 300-500 words 
         elif text:
             content_prompt = f"""Convert this text into an engaging podcast conversation between two hosts:
 
-{text[:1000]}  
+{text[:1500] if len(text) > 1500 else text}
 
 Format as a natural dialogue:
 Host 1: [First speaker introducing the topic]
@@ -247,6 +302,18 @@ Host 2: [Second speaker responding and adding insights]
 ...
 
 Make it conversational and engaging. Keep it concise."""
+        
+        elif urls and url_content:
+            content_prompt = f"""Create a podcast conversation about this content from the web:
+
+{url_content}
+
+Format as a natural dialogue between two hosts:
+Host 1: [First speaker introducing the topic]
+Host 2: [Second speaker responding and adding insights]
+...
+
+Make it informative and engaging, discussing the key points from the content."""
         
         elif urls:
             content_prompt = f"""Create a podcast conversation about content from these URLs: {', '.join(urls[:3])}
@@ -271,7 +338,7 @@ Host 2: Absolutely, and there are some fascinating points worth exploring furthe
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
                     messages=[{"role": "user", "content": content_prompt}],
-                    max_tokens=800,
+                    max_tokens=1000,
                     temperature=0.7
                 )
                 conversation_text = response.choices[0].message.content
@@ -282,8 +349,28 @@ Host 2: Absolutely, and there are some fascinating points worth exploring furthe
         
         # Fallback to a simple generated conversation if OpenAI fails
         if not conversation_text:
-            topic_name = topic or "interesting topics" 
-            conversation_text = f"""Host 1: Welcome to our podcast! Today we're exploring {topic_name}.
+            if url_content:
+                # Use the extracted content for a more relevant fallback
+                topic_name = topic or "the topics we found online"
+                preview = url_content[:200] + "..." if len(url_content) > 200 else url_content
+                conversation_text = f"""Host 1: Welcome to our podcast! Today we're exploring {topic_name}.
+
+Host 2: Thanks for tuning in! We've gathered some fascinating insights from our research.
+
+Host 1: That's right. Here's what caught our attention: {preview}
+
+Host 2: There are so many important aspects to consider here, and I think our audience will find this really valuable.
+
+Host 1: Absolutely! The implications are quite significant, and it's definitely worth discussing in detail.
+
+Host 2: I couldn't agree more. This kind of content is exactly what makes our podcast so engaging and informative.
+
+Host 1: And that wraps up today's discussion. Thanks for listening, and don't forget to subscribe!
+
+Host 2: Until next time, keep exploring and stay curious!"""
+            else:
+                topic_name = topic or "interesting topics" 
+                conversation_text = f"""Host 1: Welcome to our podcast! Today we're exploring {topic_name}.
 
 Host 2: Thanks for tuning in! This is definitely something our listeners will find valuable and thought-provoking.
 
@@ -298,7 +385,7 @@ Host 2: I couldn't agree more. It's topics like these that make our podcast so e
 Host 1: And that wraps up today's discussion. Thanks for listening, and don't forget to subscribe!
 
 Host 2: Until next time, keep exploring and stay curious!"""
-            logger.info("Using fallback conversation content")
+            logger.info("Using enhanced fallback conversation content")
         
         # Generate audio using edge-tts (bypasses LangChain TTS)
         if tts_model == "edge":
@@ -413,16 +500,34 @@ async def generate_podcast_endpoint(data: dict):
         # Create a wrapper function for timeout handling
         def generate_with_timeout():
             try:
-                # First attempt: Use direct API fallback immediately for deployed environments
+                # For deployed environments, try LangChain first with better error handling
                 if os.getenv('RENDER'):
-                    logger.info("Using direct API fallback for Render deployment")
-                    return asyncio.run(generate_podcast_direct_api(
-                        urls=urls,
-                        text=text,
-                        topic=topic,
-                        tts_model=tts_model,
-                        longform=bool(data.get('is_long_form', False))
-                    ))
+                    logger.info("Render deployment detected - using optimized generation")
+                    try:
+                        # Try the full LangChain pipeline first
+                        result = generate_podcast(
+                            urls=urls,
+                            text=text,
+                            topic=topic,
+                            conversation_config=conversation_config,
+                            tts_model=tts_model,
+                            longform=bool(data.get('is_long_form', False)),
+                            llm_model_name="gpt-3.5-turbo",
+                            api_key_label="OPENAI_API_KEY"
+                        )
+                        logger.info("Successfully generated using LangChain pipeline")
+                        return result
+                    except Exception as langchain_error:
+                        logger.warning(f"LangChain pipeline failed: {str(langchain_error)}")
+                        # Fall back to direct API if LangChain fails
+                        logger.info("Falling back to direct API method")
+                        return asyncio.run(generate_podcast_direct_api(
+                            urls=urls,
+                            text=text,
+                            topic=topic,
+                            tts_model=tts_model,
+                            longform=bool(data.get('is_long_form', False))
+                        ))
                 
                 # For non-deployed environments, try LangChain first
                 result = generate_podcast(
@@ -438,7 +543,7 @@ async def generate_podcast_endpoint(data: dict):
                 return result
             except Exception as e:
                 # Fallback to direct API
-                logger.warning(f"LangChain failed, using direct API: {str(e)}")
+                logger.warning(f"All LangChain methods failed, using direct API: {str(e)}")
                 return asyncio.run(generate_podcast_direct_api(
                     urls=urls,
                     text=text,

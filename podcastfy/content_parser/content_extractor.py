@@ -65,7 +65,8 @@ class ContentExtractor:
 			if source.lower().endswith('.pdf'):
 				return self.pdf_extractor.extract_content(source)
 			elif self.is_url(source):
-				if any(pattern in source for pattern in self.content_extractor_config['youtube_url_patterns']):
+				youtube_patterns = self.content_extractor_config.get('youtube_url_patterns', ['youtube.com', 'youtu.be'])
+				if any(pattern in source for pattern in youtube_patterns):
 					return self.youtube_transcriber.extract_transcript(source)
 				else:
 					return self.website_extractor.extract_content(source)
