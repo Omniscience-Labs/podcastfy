@@ -11,6 +11,11 @@ def fix_pydantic_issues():
     try:
         import pydantic
         from pydantic import BaseModel
+        from typing import Any, List, Dict, Optional
+        import warnings
+        
+        # Suppress Pydantic warnings
+        warnings.filterwarnings("ignore", category=pydantic.warnings.PydanticDeprecatedSince20)
         
         # Create missing types that Pydantic needs
         if not hasattr(pydantic, 'BaseCache'):
@@ -18,22 +23,41 @@ def fix_pydantic_issues():
                 pass
             pydantic.BaseCache = BaseCache
         
+        # Create missing Callbacks type if needed
+        try:
+            from typing import TYPE_CHECKING
+            if TYPE_CHECKING:
+                from typing import Callable
+                Callbacks = List[Callable[[Any], Any]]
+            else:
+                Callbacks = List[Any]
+        except ImportError:
+            Callbacks = List[Any]
+        
+        # Add to globals if needed
+        import builtins
+        if not hasattr(builtins, 'Callbacks'):
+            builtins.Callbacks = Callbacks
+        
         # Try to rebuild LangChain models after importing them
-        try:
-            from langchain_community.chat_models import ChatLiteLLM
-            if hasattr(ChatLiteLLM, 'model_rebuild'):
-                ChatLiteLLM.model_rebuild()
-        except (ImportError, Exception):
-            pass
-            
-        try:
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            if hasattr(ChatGoogleGenerativeAI, 'model_rebuild'):
-                ChatGoogleGenerativeAI.model_rebuild()
-        except (ImportError, Exception):
-            pass
-            
-    except ImportError:
+        models_to_rebuild = [
+            ('langchain_community.chat_models', 'ChatLiteLLM'),
+            ('langchain_google_genai', 'ChatGoogleGenerativeAI'),
+            ('langchain_core.language_models.chat_models', 'BaseChatModel'),
+        ]
+        
+        for module_name, class_name in models_to_rebuild:
+            try:
+                module = __import__(module_name, fromlist=[class_name])
+                model_class = getattr(module, class_name, None)
+                if model_class and hasattr(model_class, 'model_rebuild'):
+                    model_class.model_rebuild()
+            except Exception:
+                # Silently continue if rebuild fails
+                pass
+                
+    except Exception:
+        # If all else fails, just continue
         pass
 
 # Apply the fix before any other imports
@@ -175,16 +199,33 @@ async def generate_podcast_endpoint(data: dict):
         
 
         # Generate podcast - use gemini model to avoid ChatLiteLLM Pydantic issues
-        result = generate_podcast(
-            urls=urls,
-            text=text,
-            topic=topic,
-            conversation_config=conversation_config,
-            tts_model=tts_model,
-            longform=bool(data.get('is_long_form', False)),
-            llm_model_name="gemini-1.5-pro-latest",  # Use Gemini instead of default
-            api_key_label="GEMINI_API_KEY"
-        )
+        try:
+            result = generate_podcast(
+                urls=urls,
+                text=text,
+                topic=topic,
+                conversation_config=conversation_config,
+                tts_model=tts_model,
+                longform=bool(data.get('is_long_form', False)),
+                llm_model_name="gemini-1.5-pro-latest",  # Use Gemini instead of default
+                api_key_label="GEMINI_API_KEY"
+            )
+        except Exception as e:
+            # If there are still Pydantic issues, try with OpenAI
+            try:
+                result = generate_podcast(
+                    urls=urls,
+                    text=text,
+                    topic=topic,
+                    conversation_config=conversation_config,
+                    tts_model=tts_model,
+                    longform=bool(data.get('is_long_form', False)),
+                    llm_model_name="gpt-3.5-turbo",
+                    api_key_label="OPENAI_API_KEY"
+                )
+            except Exception as e2:
+                raise HTTPException(status_code=500, detail=f"Failed with both Gemini and OpenAI: {str(e2)}")
+                
         # Handle the result
         if isinstance(result, str) and os.path.isfile(result):
             filename = f"podcast_{os.urandom(8).hex()}.mp3"
