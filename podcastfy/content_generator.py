@@ -67,6 +67,7 @@ class LLMBackend:
                     api_key=os.environ["GEMINI_API_KEY"],
                     model=model_name,
                     max_output_tokens=max_output_tokens,
+                    callbacks=None,  # Explicitly set callbacks to None to avoid validation errors
                     **common_params,
                 )
             except (ImportError, Exception) as e:
@@ -76,12 +77,14 @@ class LLMBackend:
                     model="gpt-3.5-turbo",  # Fallback model
                     temperature=temperature,
                     api_key=os.environ.get("OPENAI_API_KEY", ""),
+                    callbacks=None,  # Explicitly set callbacks to None to avoid validation errors
                 )
         else:  # user should set api_key_label from input
             self.llm = ChatLiteLLM(
                 model=self.model_name,
                 temperature=temperature,
                 api_key=os.environ[api_key_label],
+                callbacks=None,  # Explicitly set callbacks to None to avoid validation errors
             )
 
 
@@ -809,7 +812,7 @@ class ContentGenerator:
         messages.append(text_content)
 
         for i in range(num_images):
-            key = f"image_path_{i}"
+            key = f"image_url_{i}"
             image_content = {
                 "image_url": {"url": f"{{{key}}}", "detail": "high"},
                 "type": "image_url",
