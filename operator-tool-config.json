@@ -1,0 +1,99 @@
+{
+  "tool": {
+    "name": "podcastfy",
+    "description": "Generate AI-powered podcasts from various content sources including URLs, text, topics, PDFs, and images",
+    "version": "1.0.0",
+    "author": "Latent Labs",
+    "category": "content_generation",
+    "tags": ["podcast", "ai", "audio", "content", "generation"],
+    "icon": "🎙️",
+    "api": {
+      "base_url": "https://podcastfy-8x6a.onrender.com",
+      "endpoints": {
+        "generate": {
+          "method": "POST",
+          "path": "/generate",
+          "description": "Generate a podcast from content sources",
+          "parameters": {
+            "urls": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "List of URLs to extract content from",
+              "required": false
+            },
+            "text": {
+              "type": "string",
+              "description": "Direct text content to convert to podcast",
+              "required": false
+            },
+            "topic": {
+              "type": "string", 
+              "description": "Topic to generate podcast content about",
+              "required": false
+            },
+            "tts_model": {
+              "type": "string",
+              "enum": ["edge", "openai", "elevenlabs", "gemini"],
+              "default": "edge",
+              "description": "Text-to-speech model to use"
+            },
+            "conversation_style": {
+              "type": "string",
+              "enum": ["casual", "formal", "educational", "interview"],
+              "default": "casual",
+              "description": "Style of the podcast conversation"
+            },
+            "longform": {
+              "type": "boolean",
+              "default": false,
+              "description": "Generate long-form content"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "success": {"type": "boolean"},
+              "audio_url": {"type": "string"},
+              "transcript_url": {"type": "string"},
+              "message": {"type": "string"}
+            }
+          }
+        },
+        "health": {
+          "method": "GET",
+          "path": "/health",
+          "description": "Check service health"
+        }
+      }
+    },
+    "usage_examples": [
+      {
+        "title": "Generate podcast from URL",
+        "description": "Create a podcast from a news article",
+        "request": {
+          "urls": ["https://www.bbc.com/news/technology"],
+          "tts_model": "edge",
+          "conversation_style": "casual"
+        }
+      },
+      {
+        "title": "Generate podcast from topic",
+        "description": "Create a podcast about AI in healthcare",
+        "request": {
+          "topic": "Artificial Intelligence in Healthcare",
+          "tts_model": "openai",
+          "conversation_style": "educational"
+        }
+      },
+      {
+        "title": "Generate podcast from text",
+        "description": "Convert text content to podcast",
+        "request": {
+          "text": "Your text content here...",
+          "tts_model": "elevenlabs",
+          "longform": true
+        }
+      }
+    ]
+  }
+} 
