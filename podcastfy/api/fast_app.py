@@ -10,8 +10,8 @@ def fix_pydantic_issues():
     """Comprehensive fix for Pydantic issues with LangChain components"""
     try:
         import pydantic
-        from pydantic import BaseModel
-        from typing import Any, List, Dict, Optional, Callable
+        from pydantic import BaseModel, Field
+        from typing import Any, List, Dict, Optional, Callable, Union
         import warnings
         import sys
         
@@ -21,7 +21,7 @@ def fix_pydantic_issues():
         # Create all missing types that Pydantic/LangChain needs
         missing_types = {
             'BaseCache': type('BaseCache', (BaseModel,), {}),
-            'Callbacks': List[Callable[[Any], Any]],
+            'Callbacks': Optional[List[Callable[[Any], Any]]],
             'BaseCallbackHandler': type('BaseCallbackHandler', (BaseModel,), {}),
             'BaseCallbackManager': type('BaseCallbackManager', (BaseModel,), {}),
         }
@@ -36,6 +36,59 @@ def fix_pydantic_issues():
         for name, type_def in missing_types.items():
             if not hasattr(builtins, name):
                 setattr(builtins, name, type_def)
+        
+        # Create a patched version of LangChain models that handles None callbacks
+        def patch_langchain_models():
+            try:
+                # Import and patch ChatLiteLLM
+                from langchain_community.chat_models import ChatLiteLLM
+                
+                # Store original __init__
+                original_init = ChatLiteLLM.__init__
+                
+                def patched_init(self, *args, **kwargs):
+                    # Ensure callbacks is always a list or None, never just None causing validation error
+                    if 'callbacks' in kwargs and kwargs['callbacks'] is None:
+                        kwargs['callbacks'] = []
+                    # Call original init
+                    return original_init(self, *args, **kwargs)
+                
+                # Apply patch
+                ChatLiteLLM.__init__ = patched_init
+                
+                # Try to rebuild the model
+                if hasattr(ChatLiteLLM, 'model_rebuild'):
+                    ChatLiteLLM.model_rebuild()
+                    
+            except Exception:
+                pass
+                
+            try:
+                # Import and patch ChatGoogleGenerativeAI
+                from langchain_google_genai import ChatGoogleGenerativeAI
+                
+                # Store original __init__
+                original_init = ChatGoogleGenerativeAI.__init__
+                
+                def patched_init(self, *args, **kwargs):
+                    # Ensure callbacks is always a list or None
+                    if 'callbacks' in kwargs and kwargs['callbacks'] is None:
+                        kwargs['callbacks'] = []
+                    # Call original init
+                    return original_init(self, *args, **kwargs)
+                
+                # Apply patch
+                ChatGoogleGenerativeAI.__init__ = patched_init
+                
+                # Try to rebuild the model
+                if hasattr(ChatGoogleGenerativeAI, 'model_rebuild'):
+                    ChatGoogleGenerativeAI.model_rebuild()
+                    
+            except Exception:
+                pass
+        
+        # Apply the patches
+        patch_langchain_models()
         
         # Pre-import and fix LangChain modules before they cause issues
         langchain_modules = [
@@ -226,12 +279,12 @@ async def generate_podcast_endpoint(data: dict):
             error_msg = str(e).lower()
             
             # Check if it's a Pydantic/LangChain issue
-            if any(keyword in error_msg for keyword in ['pydantic', 'not fully defined', 'model_rebuild', 'basecache', 'callbacks']):
+            if any(keyword in error_msg for keyword in ['pydantic', 'not fully defined', 'model_rebuild', 'basecache', 'callbacks', 'validation error']):
                 try:
                     # Re-apply Pydantic fix and try again
                     fix_pydantic_issues()
                     
-                    # Try with OpenAI as fallback
+                    # Try with OpenAI as fallback (often more stable)
                     result = generate_podcast(
                         urls=urls,
                         text=text,
@@ -246,7 +299,7 @@ async def generate_podcast_endpoint(data: dict):
                     # If both fail, provide helpful error message
                     raise HTTPException(
                         status_code=500, 
-                        detail=f"LangChain compatibility issue. Please try again or contact support. Original error: {str(e)}"
+                        detail=f"LangChain compatibility issue detected. This is a known issue with Pydantic 2.x and LangChain on some deployments. Please try again in a few moments or use the web interface at https://podcastfy-g0ebyv6nq-latent-labs1.vercel.app. Technical details: {str(e)}"
                     )
             else:
                 # For non-Pydantic errors, try OpenAI fallback
