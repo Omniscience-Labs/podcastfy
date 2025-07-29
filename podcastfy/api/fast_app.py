@@ -110,24 +110,24 @@ async def generate_podcast_endpoint(data: dict):
         voices = data.get('voices', {})
         default_voices = tts_base_config.get('default_voices', {})
         
-        # Prepare user configuration
+        # Prepare user configuration with proper defaults
         user_config = {
             'creativity': float(data.get('creativity', base_config.get('creativity', 0.7))),
-            'conversation_style': data.get('conversation_style', base_config.get('conversation_style', [])),
-            'roles_person1': data.get('roles_person1', base_config.get('roles_person1')),
-            'roles_person2': data.get('roles_person2', base_config.get('roles_person2')),
-            'dialogue_structure': data.get('dialogue_structure', base_config.get('dialogue_structure', [])),
-            'podcast_name': data.get('name', base_config.get('podcast_name')),
-            'podcast_tagline': data.get('tagline', base_config.get('podcast_tagline')),
+            'conversation_style': data.get('conversation_style', base_config.get('conversation_style', ['casual', 'informative'])),
+            'roles_person1': data.get('roles_person1', base_config.get('roles_person1', 'Host')),
+            'roles_person2': data.get('roles_person2', base_config.get('roles_person2', 'Expert')),
+            'dialogue_structure': data.get('dialogue_structure', base_config.get('dialogue_structure', ['Introduction', 'Main Discussion', 'Conclusion'])),
+            'podcast_name': data.get('name', base_config.get('podcast_name', 'AI Podcast')),
+            'podcast_tagline': data.get('tagline', base_config.get('podcast_tagline', 'Exploring ideas through conversation')),
             'output_language': data.get('output_language', base_config.get('output_language', 'English')),
             'user_instructions': data.get('user_instructions', base_config.get('user_instructions', '')),
-            'engagement_techniques': data.get('engagement_techniques', base_config.get('engagement_techniques', [])),
+            'engagement_techniques': data.get('engagement_techniques', base_config.get('engagement_techniques', ['questions', 'examples'])),
             'text_to_speech': {
                 'default_tts_model': tts_model,
-                'model': tts_base_config.get('model'),
+                'model': tts_base_config.get('model', tts_model),
                 'default_voices': {
-                    'question': voices.get('question', default_voices.get('question')),
-                    'answer': voices.get('answer', default_voices.get('answer'))
+                    'question': voices.get('question', default_voices.get('question', 'alloy')),
+                    'answer': voices.get('answer', default_voices.get('answer', 'echo'))
                 }
             }
         }
