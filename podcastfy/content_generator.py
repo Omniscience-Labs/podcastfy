@@ -80,12 +80,33 @@ class LLMBackend:
                     callbacks=None,  # Explicitly set callbacks to None to avoid validation errors
                 )
         else:  # user should set api_key_label from input
-            self.llm = ChatLiteLLM(
-                model=self.model_name,
-                temperature=temperature,
-                api_key=os.environ[api_key_label],
-                callbacks=None,  # Explicitly set callbacks to None to avoid validation errors
-            )
+            # Check if we're in a deployed environment (Render, etc.)
+            is_deployed = os.getenv('RENDER') or os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('VERCEL')
+            
+            if is_deployed:
+                # For deployed environments, use a minimal initialization to avoid Pydantic issues
+                try:
+                    self.llm = ChatLiteLLM(
+                        model=self.model_name,
+                        temperature=temperature,
+                        api_key=os.environ[api_key_label],
+                    )
+                except Exception as e:
+                    # If that fails, try with explicit empty callbacks list
+                    self.llm = ChatLiteLLM(
+                        model=self.model_name,
+                        temperature=temperature,
+                        api_key=os.environ[api_key_label],
+                        callbacks=[],
+                    )
+            else:
+                # For local environments, use the full initialization
+                self.llm = ChatLiteLLM(
+                    model=self.model_name,
+                    temperature=temperature,
+                    api_key=os.environ[api_key_label],
+                    callbacks=None,  # Explicitly set callbacks to None to avoid validation errors
+                )
 
 
 class LongFormContentGenerator:
