@@ -240,22 +240,56 @@ async def generate_podcast_direct_api(urls=None, text=None, topic=None, tts_mode
                     for element in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'noscript', 'iframe']):
                         element.decompose()
                     
-                    # Extract main content
-                    main_content = soup.find('main') or soup.find('article') or soup.find('div', class_=lambda x: x and ('content' in x or 'article' in x or 'post' in x))
+                    # Extract main content with multiple strategies
+                    content_text = ""
+                    
+                    # Strategy 1: Look for main content areas
+                    main_content = (
+                        soup.find('main') or 
+                        soup.find('article') or 
+                        soup.find('div', class_=lambda x: x and ('content' in x or 'article' in x or 'post' in x))
+                    )
+                    
                     if main_content:
                         content_text = main_content.get_text(separator=' ', strip=True)
-                    else:
-                        content_text = soup.get_text(separator=' ', strip=True)
+                        logger.info(f"Found main content section: {len(content_text)} chars")
+                    
+                    # Strategy 2: If content is too short, look for specific news content patterns
+                    if len(content_text) < 1500:
+                        # Look for paragraphs, list items, and divs that might contain news content
+                        content_elements = soup.find_all(['p', 'li', 'div'], text=True)
+                        additional_content = []
+                        
+                        for elem in content_elements:
+                            text = elem.get_text(strip=True)
+                            # Skip very short text or common navigation elements
+                            if (len(text) > 50 and 
+                                not any(skip in text.lower() for skip in ['cookie', 'subscribe', 'sign in', 'menu', 'navigation', 'advertisement'])):
+                                additional_content.append(text)
+                        
+                        if additional_content:
+                            content_text += " " + " ".join(additional_content[:10])  # Take first 10 relevant elements
+                            logger.info(f"Added additional content elements: {len(additional_content)} found")
+                    
+                    # Strategy 3: If still too short, get all text but filter more carefully
+                    if len(content_text) < 1000:
+                        all_text = soup.get_text(separator=' ', strip=True)
+                        # Split into sentences and filter
+                        sentences = [s.strip() for s in all_text.split('.') if len(s.strip()) > 30]
+                        relevant_sentences = [s for s in sentences[:20] if not any(skip in s.lower() for skip in 
+                                            ['cookie', 'subscribe', 'sign in', 'menu', 'follow us', 'advertisement', 'newsletter'])]
+                        content_text = '. '.join(relevant_sentences[:15]) + '.'
+                        logger.info(f"Using filtered sentences approach: {len(relevant_sentences)} sentences")
                     
                     # Clean and limit content
                     content_text = ' '.join(content_text.split())  # Remove extra whitespace
-                    content_text = content_text[:3000]  # Limit to 3000 characters per URL
+                    content_text = content_text[:5000]  # Increased limit for better content
                     
-                    if content_text:
+                    if content_text and len(content_text) > 200:
                         url_content += f"\n\nContent from {url}:\n{content_text}"
                         logger.info(f"Successfully extracted {len(content_text)} characters from {url}")
                     else:
-                        logger.warning(f"No content extracted from {url}")
+                        logger.warning(f"Insufficient content extracted from {url}: {len(content_text)} chars")
                         
                 except Exception as url_error:
                     logger.warning(f"Failed to extract content from {url}: {str(url_error)}")
