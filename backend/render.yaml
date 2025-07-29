@@ -5,8 +5,8 @@ services:
     buildCommand: ""
     startCommand: ""
     plan: free
-    dockerfilePath: ./Dockerfile_api
-    dockerContext: .
+    dockerfilePath: ../Dockerfile_api
+    dockerContext: ..
     envVars:
       - key: GEMINI_API_KEY
         sync: false
@@ -22,3 +22,5 @@ services:
         value: "en"
       - key: LOG_LEVEL
         value: "INFO"
+      - key: PORT
+        value: "8000"

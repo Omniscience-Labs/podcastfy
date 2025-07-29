@@ -5,7 +5,7 @@ class PodcastfyUI {
         this.bindEvents();
         this.currentAudioUrl = null;
         this.currentTranscript = null;
-        // API base URL - updated to point to the correct Render backend
+        // API base URL - point to your Render backend
         this.API_BASE_URL = 'https://podcastfy-8x6a.onrender.com';
     }
 
@@ -167,7 +167,7 @@ class PodcastfyUI {
                 delete requestData.image_files;
             }
             
-            // Make the API call to Render backend (FastAPI uses /generate, not /api/generate)
+            // Make the API call to Render FastAPI backend
             const response = await fetch(`${this.API_BASE_URL}/generate`, {
                 method: 'POST',
                 headers: {
@@ -216,25 +216,45 @@ class PodcastfyUI {
     }
 
     async handleSuccess(response) {
-        this.currentAudioUrl = response.audio_url;
+        // Handle absolute vs relative URLs
+        if (response.audio_url.startsWith('/')) {
+            this.currentAudioUrl = `${this.API_BASE_URL}${response.audio_url}`;
+        } else {
+            this.currentAudioUrl = response.audio_url;
+        }
         
-        // Fetch transcript content
-        try {
-            const transcriptResponse = await fetch(response.transcript_url);
-            if (transcriptResponse.ok) {
-                this.currentTranscript = await transcriptResponse.text();
-                this.transcriptContent.innerHTML = this.formatTranscript(this.currentTranscript);
-            } else {
-                console.error('Failed to fetch transcript');
+        // Handle transcript - FastAPI returns it directly in response or as URL
+        if (response.transcript) {
+            // Transcript is included directly in the response
+            this.currentTranscript = response.transcript;
+            this.transcriptContent.innerHTML = this.formatTranscript(this.currentTranscript);
+        } else if (response.transcript_url) {
+            // Transcript is provided as URL
+            try {
+                const transcriptUrl = response.transcript_url.startsWith('/') 
+                    ? `${this.API_BASE_URL}${response.transcript_url}`
+                    : response.transcript_url;
+                    
+                const transcriptResponse = await fetch(transcriptUrl);
+                if (transcriptResponse.ok) {
+                    this.currentTranscript = await transcriptResponse.text();
+                    this.transcriptContent.innerHTML = this.formatTranscript(this.currentTranscript);
+                } else {
+                    console.error('Failed to fetch transcript');
+                    this.transcriptContent.innerHTML = '<p class="text-red-500">Failed to load transcript</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching transcript:', error);
                 this.transcriptContent.innerHTML = '<p class="text-red-500">Failed to load transcript</p>';
             }
-        } catch (error) {
-            console.error('Error fetching transcript:', error);
-            this.transcriptContent.innerHTML = '<p class="text-red-500">Failed to load transcript</p>';
+        } else {
+            // No transcript available
+            this.transcriptContent.innerHTML = '<p class="text-gray-500">Transcript not available</p>';
+            this.currentTranscript = null;
         }
         
         // Update audio player
-        this.audioPlayer.src = response.audio_url;
+        this.audioPlayer.src = this.currentAudioUrl;
         
         // Show results
         this.showResults();
