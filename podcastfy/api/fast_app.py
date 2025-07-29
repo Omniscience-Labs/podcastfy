@@ -163,13 +163,35 @@ TEMP_DIR = os.path.join(os.path.dirname(__file__), "temp_audio")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 def load_base_config() -> Dict[Any, Any]:
+    """Load base configuration from conversation_config.yaml"""
     config_path = Path(__file__).parent.parent / "conversation_config.yaml"
     try:
         with open(config_path, 'r') as file:
             return yaml.safe_load(file)
     except Exception as e:
-        print(f"Warning: Could not load base config: {e}")
-        return {}
+        logger.warning(f"Could not load base config: {e}")
+        return {
+            'creativity': 0.7,
+            'conversation_style': ['casual', 'informative'],
+            'roles_person1': 'Host',
+            'roles_person2': 'Expert',
+            'dialogue_structure': ['Introduction', 'Main Discussion', 'Conclusion'],
+            'podcast_name': 'AI Podcast',
+            'podcast_tagline': 'Exploring ideas through conversation',
+            'output_language': 'English',
+            'user_instructions': '',
+            'engagement_techniques': ['questions', 'examples'],
+            'text_to_speech': {
+                'default_tts_model': 'edge',
+                'edge': {
+                    'model': 'edge',
+                    'default_voices': {
+                        'question': 'en-US-AriaNeural',
+                        'answer': 'en-US-GuyNeural'
+                    }
+                }
+            }
+        }
 
 def merge_configs(base_config: Dict[Any, Any], user_config: Dict[Any, Any]) -> Dict[Any, Any]:
     """Merge user configuration with base configuration, preferring user values."""
@@ -198,9 +220,11 @@ async def generate_podcast_direct_api(urls=None, text=None, topic=None, tts_mode
         import edge_tts
         import asyncio
         
+        logger.info(f"Direct API fallback: generating content for topic='{topic}', text_length={len(text) if text else 0}, urls={len(urls) if urls else 0}")
+        
         # Generate content using direct OpenAI API
         if topic:
-            content_prompt = f"""Create a engaging podcast conversation about: {topic}
+            content_prompt = f"""Create an engaging podcast conversation about: {topic}
 
 Please create a natural dialogue between two hosts discussing this topic. 
 Format it as:
@@ -210,73 +234,103 @@ Host 2: [Second speaker's response]
 Host 1: [Continuing the conversation]
 ...
 
-Make it informative, engaging, and conversational. Keep it around 500-800 words total."""
+Make it informative, engaging, and conversational. Keep it around 300-500 words total for faster processing."""
         
         elif text:
             content_prompt = f"""Convert this text into an engaging podcast conversation between two hosts:
 
-{text}
+{text[:1000]}  
 
 Format as a natural dialogue:
 Host 1: [First speaker introducing the topic]
 Host 2: [Second speaker responding and adding insights]
 ...
 
-Make it conversational and engaging."""
+Make it conversational and engaging. Keep it concise."""
         
         elif urls:
-            content_prompt = f"""Create a podcast conversation about content from these URLs: {', '.join(urls)}
+            content_prompt = f"""Create a podcast conversation about content from these URLs: {', '.join(urls[:3])}
 
-Host 1: Welcome to our podcast! Today we're discussing some interesting content.
-Host 2: That's right! Let's dive into what we found.
+Host 1: Welcome to our podcast! Today we're discussing some interesting content from the web.
+Host 2: That's right! Let's dive into what we found and explore the key insights.
 Host 1: The main topics seem to be quite relevant to our audience.
-Host 2: Absolutely, and there are some key insights worth exploring."""
+Host 2: Absolutely, and there are some fascinating points worth exploring further."""
         
         else:
             raise Exception("No content provided")
         
         # Use OpenAI directly (bypassing LangChain)
-        openai.api_key = os.environ.get("OPENAI_API_KEY")
-        if openai.api_key:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": content_prompt}],
-                max_tokens=1000,
-                temperature=0.7
-            )
-            conversation_text = response.choices[0].message.content
-        else:
-            # Fallback to a simple generated conversation
-            conversation_text = f"""Host 1: Welcome to our podcast! Today we're exploring {topic or 'an interesting topic'}.
+        conversation_text = ""
+        openai_key = os.environ.get("OPENAI_API_KEY")
+        
+        if openai_key:
+            try:
+                import openai
+                openai.api_key = openai_key
+                
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": content_prompt}],
+                    max_tokens=800,
+                    temperature=0.7
+                )
+                conversation_text = response.choices[0].message.content
+                logger.info("Generated content using OpenAI")
+            except Exception as e:
+                logger.warning(f"OpenAI failed: {e}, using fallback content")
+                conversation_text = None
+        
+        # Fallback to a simple generated conversation if OpenAI fails
+        if not conversation_text:
+            topic_name = topic or "interesting topics" 
+            conversation_text = f"""Host 1: Welcome to our podcast! Today we're exploring {topic_name}.
 
-Host 2: Thanks for tuning in! This is definitely something our listeners will find valuable.
+Host 2: Thanks for tuning in! This is definitely something our listeners will find valuable and thought-provoking.
 
-Host 1: Let's dive right into the key points and discuss what makes this so important.
+Host 1: Let's dive right into the key points and discuss what makes this so important in today's world.
 
-Host 2: Absolutely! The insights we've gathered really highlight the significance of this subject.
+Host 2: Absolutely! The insights we've gathered really highlight the significance of this subject and its impact.
 
-Host 1: And that wraps up today's discussion. Thanks for listening!
+Host 1: There are so many fascinating aspects to consider, and I think our audience will really appreciate this discussion.
 
-Host 2: Don't forget to subscribe for more great content!"""
+Host 2: I couldn't agree more. It's topics like these that make our podcast so engaging and informative.
+
+Host 1: And that wraps up today's discussion. Thanks for listening, and don't forget to subscribe!
+
+Host 2: Until next time, keep exploring and stay curious!"""
+            logger.info("Using fallback conversation content")
         
         # Generate audio using edge-tts (bypasses LangChain TTS)
         if tts_model == "edge":
-            # Create temporary files
-            audio_id = str(uuid.uuid4())
-            audio_filename = f"podcast_{audio_id}.mp3"
-            audio_path = os.path.join(TEMP_DIR, audio_filename)
-            
-            # Use edge-tts to generate audio
-            communicate = edge_tts.Communicate(conversation_text, "en-US-AriaNeural")
-            await communicate.save(audio_path)
-            
-            return {
-                "success": True,
-                "message": "Podcast generated successfully using direct API fallback",
-                "audio_url": f"/audio/{audio_filename}",
-                "transcript": conversation_text,
-                "method": "direct_api_fallback"
-            }
+            try:
+                # Create temporary files
+                audio_id = str(uuid.uuid4())
+                audio_filename = f"podcast_{audio_id}.mp3"
+                audio_path = os.path.join(TEMP_DIR, audio_filename)
+                
+                # Use edge-tts to generate audio
+                communicate = edge_tts.Communicate(conversation_text, "en-US-AriaNeural")
+                await communicate.save(audio_path)
+                
+                logger.info(f"Generated audio file: {audio_filename}")
+                
+                return {
+                    "success": True,
+                    "message": "Podcast generated successfully using direct API fallback",
+                    "audio_url": f"/audio/{audio_filename}",
+                    "transcript": conversation_text,
+                    "method": "direct_api_fallback"
+                }
+            except Exception as e:
+                logger.error(f"Edge TTS failed: {e}")
+                # Return text-only response if TTS fails
+                return {
+                    "success": True,
+                    "message": "Podcast content generated (audio generation failed, text only)",
+                    "transcript": conversation_text,
+                    "method": "direct_api_fallback",
+                    "error": f"TTS failed: {str(e)}"
+                }
         else:
             # For other TTS models, return text only
             return {
@@ -287,6 +341,7 @@ Host 2: Don't forget to subscribe for more great content!"""
             }
             
     except Exception as e:
+        logger.error(f"Direct API fallback failed: {str(e)}")
         raise Exception(f"Direct API fallback failed: {str(e)}")
 
 @app.post("/generate")
@@ -294,6 +349,9 @@ async def generate_podcast_endpoint(data: dict):
     """
     Generate a podcast from URLs, direct text input, or topic.
     """
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+    
     try:
         # Validate input sources
         urls = data.get('urls', [])
@@ -320,7 +378,7 @@ async def generate_podcast_endpoint(data: dict):
         base_config = load_base_config()
         
         # Get TTS model and its configuration from base config
-        tts_model = data.get('tts_model', base_config.get('text_to_speech', {}).get('default_tts_model', 'openai'))
+        tts_model = data.get('tts_model', base_config.get('text_to_speech', {}).get('default_tts_model', 'edge'))
         tts_base_config = base_config.get('text_to_speech', {}).get(tts_model, {})
         
         # Get voices (use user-provided voices or fall back to defaults)
@@ -352,85 +410,66 @@ async def generate_podcast_endpoint(data: dict):
         # Merge configurations
         conversation_config = merge_configs(base_config, user_config)
 
-        # Generate podcast with comprehensive error handling and fallback
-        try:
-            # First attempt: Use Gemini (preferred)
-            result = generate_podcast(
-                urls=urls,
-                text=text,
-                topic=topic,
-                conversation_config=conversation_config,
-                tts_model=tts_model,
-                longform=bool(data.get('is_long_form', False)),
-                llm_model_name="gemini-1.5-pro-latest",
-                api_key_label="GEMINI_API_KEY"
-            )
-        except Exception as e:
-            error_msg = str(e).lower()
-            
-            # Check if it's a Pydantic/LangChain issue
-            if any(keyword in error_msg for keyword in ['pydantic', 'not fully defined', 'model_rebuild', 'basecache', 'callbacks', 'validation error']):
-                try:
-                    # Re-apply Pydantic fix and try with OpenAI
-                    fix_pydantic_issues()
-                    
-                    result = generate_podcast(
+        # Create a wrapper function for timeout handling
+        def generate_with_timeout():
+            try:
+                # First attempt: Use direct API fallback immediately for deployed environments
+                if os.getenv('RENDER'):
+                    logger.info("Using direct API fallback for Render deployment")
+                    return asyncio.run(generate_podcast_direct_api(
                         urls=urls,
                         text=text,
                         topic=topic,
-                        conversation_config=conversation_config,
                         tts_model=tts_model,
-                        longform=bool(data.get('is_long_form', False)),
-                        llm_model_name="gpt-3.5-turbo",
-                        api_key_label="OPENAI_API_KEY"
-                    )
-                except Exception as e2:
-                    # If LangChain still fails, use direct API calls as last resort
-                    try:
-                        result = await generate_podcast_direct_api(
-                            urls=urls,
-                            text=text,
-                            topic=topic,
-                            tts_model=tts_model,
-                            longform=bool(data.get('is_long_form', False))
-                        )
-                        # Return the direct API result directly
-                        return result
-                    except Exception as e3:
-                        raise HTTPException(
-                            status_code=500, 
-                            detail=f"All generation methods failed. Please try the web interface at https://podcastfy-g0ebyv6nq-latent-labs1.vercel.app. Technical details: {str(e)}"
-                        )
-            else:
-                # For non-Pydantic errors, try OpenAI fallback
-                try:
-                    result = generate_podcast(
-                        urls=urls,
-                        text=text,
-                        topic=topic,
-                        conversation_config=conversation_config,
-                        tts_model=tts_model,
-                        longform=bool(data.get('is_long_form', False)),
-                        llm_model_name="gpt-3.5-turbo",
-                        api_key_label="OPENAI_API_KEY"
-                    )
-                except Exception as e2:
-                    # Try direct API fallback for any other errors too
-                    try:
-                        result = await generate_podcast_direct_api(
-                            urls=urls,
-                            text=text,
-                            topic=topic,
-                            tts_model=tts_model,
-                            longform=bool(data.get('is_long_form', False))
-                        )
-                        return result
-                    except Exception as e3:
-                        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e2)}")
+                        longform=bool(data.get('is_long_form', False))
+                    ))
                 
-        # Handle the standard result
-        if isinstance(result, dict) and result.get('method') == 'direct_api_fallback':
-            return result
+                # For non-deployed environments, try LangChain first
+                result = generate_podcast(
+                    urls=urls,
+                    text=text,
+                    topic=topic,
+                    conversation_config=conversation_config,
+                    tts_model=tts_model,
+                    longform=bool(data.get('is_long_form', False)),
+                    llm_model_name="gpt-3.5-turbo",
+                    api_key_label="OPENAI_API_KEY"
+                )
+                return result
+            except Exception as e:
+                # Fallback to direct API
+                logger.warning(f"LangChain failed, using direct API: {str(e)}")
+                return asyncio.run(generate_podcast_direct_api(
+                    urls=urls,
+                    text=text,
+                    topic=topic,
+                    tts_model=tts_model,
+                    longform=bool(data.get('is_long_form', False))
+                ))
+
+        # Execute with timeout
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(generate_with_timeout)
+            try:
+                # Wait for result with 120 second timeout
+                result = future.result(timeout=120)
+            except FuturesTimeoutError:
+                # Cancel the future and return timeout error
+                future.cancel()
+                raise HTTPException(
+                    status_code=408,
+                    detail="Request timeout. Podcast generation is taking longer than expected. Please try again with a shorter topic or text."
+                )
+
+        # Handle the result
+        if isinstance(result, dict):
+            if result.get('method') == 'direct_api_fallback':
+                return result
+            elif result.get('audio_file'):
+                filename = f"podcast_{os.urandom(8).hex()}.mp3"
+                output_path = os.path.join(TEMP_DIR, filename)
+                shutil.copy2(result['audio_file'], output_path)
+                return {"success": True, "audio_url": f"/audio/{filename}"}
         elif isinstance(result, str) and os.path.isfile(result):
             filename = f"podcast_{os.urandom(8).hex()}.mp3"
             output_path = os.path.join(TEMP_DIR, filename)
@@ -447,7 +486,8 @@ async def generate_podcast_endpoint(data: dict):
     except HTTPException:
         raise
     except Exception as e:
-        # Final fallback - try direct API
+        logger.error(f"Unexpected error in generate_podcast_endpoint: {str(e)}")
+        # Final fallback - try direct API with minimal timeout
         try:
             result = await generate_podcast_direct_api(
                 urls=data.get('urls', []),
@@ -457,8 +497,11 @@ async def generate_podcast_endpoint(data: dict):
                 longform=bool(data.get('is_long_form', False))
             )
             return result
-        except Exception:
-            raise HTTPException(status_code=500, detail=str(e))
+        except Exception as e2:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"All generation methods failed. Error: {str(e2)}"
+            )
 
 @app.get("/audio/{filename}")
 async def serve_audio(filename: str):
