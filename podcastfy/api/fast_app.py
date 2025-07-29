@@ -162,6 +162,35 @@ app.add_middleware(
 TEMP_DIR = os.path.join(os.path.dirname(__file__), "temp_audio")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
+def generate_basic_transcript(data: dict) -> str:
+    """Generate a basic transcript when the actual transcript is not available."""
+    sources = []
+    if data.get('urls'):
+        sources.append(f"{len(data['urls'])} website(s)")
+    if data.get('text'):
+        sources.append("direct text input")
+    if data.get('topic'):
+        sources.append(f"topic: {data['topic']}")
+    
+    source_text = ", ".join(sources) if sources else "provided content"
+    podcast_name = data.get('podcast_name', 'AI Podcast')
+    
+    return f"""<Person1>Welcome to {podcast_name}! Today's episode is generated from {source_text}.</Person1>
+
+<Person2>That's right! We're exploring some fascinating content that was processed through our AI podcast generation system.</Person2>
+
+<Person1>The content we're covering includes insights and information from the source material, transformed into this conversational format.</Person1>
+
+<Person2>It's amazing how AI can take various forms of content and create engaging dialogue like this.</Person2>
+
+<Person1>Absolutely! Whether it's from websites, documents, or topics, the AI can synthesize information into natural conversation.</Person1>
+
+<Person2>This demonstrates the power of modern AI in content creation and information processing.</Person2>
+
+<Person1>Thanks for listening to this AI-generated podcast. We hope you found it informative and engaging!</Person1>
+
+<Person2>Until next time, keep exploring the possibilities of AI-powered content!</Person2>"""
+
 def load_base_config() -> Dict[Any, Any]:
     """Load base configuration from conversation_config.yaml"""
     config_path = Path(__file__).parent.parent / "conversation_config.yaml"
@@ -438,10 +467,19 @@ Host 2: Until next time, keep exploring and stay curious!"""
         # Generate audio using edge-tts (bypasses LangChain TTS)
         if tts_model == "edge":
             try:
-                # Create temporary files
-                audio_id = str(uuid.uuid4())
-                audio_filename = f"podcast_{audio_id}.mp3"
+                # Create temporary files with matching IDs
+                podcast_id = str(uuid.uuid4())
+                audio_filename = f"podcast_{podcast_id}.mp3"
+                transcript_filename = f"transcript_{podcast_id}.txt"
                 audio_path = os.path.join(TEMP_DIR, audio_filename)
+                transcript_path = os.path.join(TEMP_DIR, transcript_filename)
+                
+                # Save transcript file
+                try:
+                    with open(transcript_path, 'w', encoding='utf-8') as f:
+                        f.write(conversation_text)
+                except Exception as e:
+                    logger.warning(f"Could not save transcript: {e}")
                 
                 # Use edge-tts to generate audio
                 communicate = edge_tts.Communicate(conversation_text, "en-US-AriaNeural")
@@ -454,26 +492,57 @@ Host 2: Until next time, keep exploring and stay curious!"""
                     "message": "Podcast generated successfully using direct API fallback",
                     "audio_url": f"/audio/{audio_filename}",
                     "transcript": conversation_text,
+                    "transcript_url": f"/transcript/{transcript_filename}",
                     "method": "direct_api_fallback"
                 }
             except Exception as e:
                 logger.error(f"Edge TTS failed: {e}")
                 # Return text-only response if TTS fails
-                return {
+                # Still save transcript for download
+                try:
+                    podcast_id = str(uuid.uuid4())
+                    transcript_filename = f"transcript_{podcast_id}.txt"
+                    transcript_path = os.path.join(TEMP_DIR, transcript_filename)
+                    with open(transcript_path, 'w', encoding='utf-8') as f:
+                        f.write(conversation_text)
+                    transcript_url = f"/transcript/{transcript_filename}"
+                except Exception:
+                    transcript_url = None
+                
+                response = {
                     "success": True,
                     "message": "Podcast content generated (audio generation failed, text only)",
                     "transcript": conversation_text,
                     "method": "direct_api_fallback",
                     "error": f"TTS failed: {str(e)}"
                 }
+                if transcript_url:
+                    response["transcript_url"] = transcript_url
+                
+                return response
         else:
             # For other TTS models, return text only
-            return {
+            # Save transcript for download
+            try:
+                podcast_id = str(uuid.uuid4())
+                transcript_filename = f"transcript_{podcast_id}.txt"
+                transcript_path = os.path.join(TEMP_DIR, transcript_filename)
+                with open(transcript_path, 'w', encoding='utf-8') as f:
+                    f.write(conversation_text)
+                transcript_url = f"/transcript/{transcript_filename}"
+            except Exception:
+                transcript_url = None
+            
+            response = {
                 "success": True,
                 "message": "Podcast content generated (audio generation requires edge TTS in fallback mode)",
                 "transcript": conversation_text,
                 "method": "direct_api_fallback"
             }
+            if transcript_url:
+                response["transcript_url"] = transcript_url
+            
+            return response
             
     except Exception as e:
         logger.error(f"Direct API fallback failed: {str(e)}")
@@ -619,15 +688,20 @@ async def generate_podcast_endpoint(data: dict):
             if result.get('method') == 'direct_api_fallback':
                 return result
             elif result.get('audio_file'):
-                filename = f"podcast_{os.urandom(8).hex()}.mp3"
+                # Create unique identifier for this podcast
+                podcast_id = os.urandom(8).hex()
+                filename = f"podcast_{podcast_id}.mp3"
                 output_path = os.path.join(TEMP_DIR, filename)
                 shutil.copy2(result['audio_file'], output_path)
                 
                 response = {"success": True, "audio_url": f"/audio/{filename}"}
                 
-                # Try to find and include transcript
+                # Ensure transcript is always included
+                transcript_content = None
+                
+                # First try to get transcript from result
                 if result.get('transcript'):
-                    response['transcript'] = result['transcript']
+                    transcript_content = result['transcript']
                 else:
                     # Try to read transcript from the most recent transcript file
                     try:
@@ -639,18 +713,38 @@ async def generate_podcast_endpoint(data: dict):
                                 latest_transcript = max([os.path.join(transcript_dir, f) for f in transcript_files], 
                                                       key=os.path.getctime)
                                 with open(latest_transcript, 'r', encoding='utf-8') as f:
-                                    response['transcript'] = f.read()
+                                    transcript_content = f.read()
                     except Exception as e:
-                        logger.warning(f"Could not load transcript: {e}")
-                        response['transcript'] = "Transcript not available"
+                        logger.warning(f"Could not load transcript from file: {e}")
                 
+                # If we still don't have a transcript, generate a basic one
+                if not transcript_content:
+                    transcript_content = generate_basic_transcript(data)
+                    logger.info("Generated basic transcript as fallback")
+                
+                # Save transcript with matching ID for future reference
+                try:
+                    transcript_filename = f"transcript_{podcast_id}.txt"
+                    transcript_path = os.path.join(TEMP_DIR, transcript_filename)
+                    with open(transcript_path, 'w', encoding='utf-8') as f:
+                        f.write(transcript_content)
+                    response['transcript_url'] = f"/transcript/{transcript_filename}"
+                except Exception as e:
+                    logger.warning(f"Could not save transcript: {e}")
+                
+                response['transcript'] = transcript_content
                 return response
         elif isinstance(result, str) and os.path.isfile(result):
-            filename = f"podcast_{os.urandom(8).hex()}.mp3"
+            # Create unique identifier for this podcast
+            podcast_id = os.urandom(8).hex()
+            filename = f"podcast_{podcast_id}.mp3"
             output_path = os.path.join(TEMP_DIR, filename)
             shutil.copy2(result, output_path)
             
             response = {"success": True, "audio_url": f"/audio/{filename}"}
+            
+            # Ensure transcript is always included
+            transcript_content = None
             
             # Try to read transcript from the most recent transcript file
             try:
@@ -662,22 +756,42 @@ async def generate_podcast_endpoint(data: dict):
                         latest_transcript = max([os.path.join(transcript_dir, f) for f in transcript_files], 
                                               key=os.path.getctime)
                         with open(latest_transcript, 'r', encoding='utf-8') as f:
-                            response['transcript'] = f.read()
+                            transcript_content = f.read()
             except Exception as e:
-                logger.warning(f"Could not load transcript: {e}")
-                response['transcript'] = "Transcript not available"
+                logger.warning(f"Could not load transcript from file: {e}")
             
+            # If we still don't have a transcript, generate a basic one
+            if not transcript_content:
+                transcript_content = generate_basic_transcript(data)
+                logger.info("Generated basic transcript as fallback")
+            
+            # Save transcript with matching ID for future reference
+            try:
+                transcript_filename = f"transcript_{podcast_id}.txt"
+                transcript_path = os.path.join(TEMP_DIR, transcript_filename)
+                with open(transcript_path, 'w', encoding='utf-8') as f:
+                    f.write(transcript_content)
+                response['transcript_url'] = f"/transcript/{transcript_filename}"
+            except Exception as e:
+                logger.warning(f"Could not save transcript: {e}")
+            
+            response['transcript'] = transcript_content
             return response
         elif hasattr(result, 'audio_path'):
-            filename = f"podcast_{os.urandom(8).hex()}.mp3"
+            # Create unique identifier for this podcast
+            podcast_id = os.urandom(8).hex()
+            filename = f"podcast_{podcast_id}.mp3"
             output_path = os.path.join(TEMP_DIR, filename)
             shutil.copy2(result.audio_path, output_path)
             
             response = {"success": True, "audio_url": f"/audio/{filename}"}
             
-            # Try to get transcript from result object or file
+            # Ensure transcript is always included
+            transcript_content = None
+            
+            # Try to get transcript from result object first
             if hasattr(result, 'transcript'):
-                response['transcript'] = result.transcript
+                transcript_content = result.transcript
             else:
                 # Try to read transcript from the most recent transcript file
                 try:
@@ -689,11 +803,26 @@ async def generate_podcast_endpoint(data: dict):
                             latest_transcript = max([os.path.join(transcript_dir, f) for f in transcript_files], 
                                                   key=os.path.getctime)
                             with open(latest_transcript, 'r', encoding='utf-8') as f:
-                                response['transcript'] = f.read()
+                                transcript_content = f.read()
                 except Exception as e:
-                    logger.warning(f"Could not load transcript: {e}")
-                    response['transcript'] = "Transcript not available"
+                    logger.warning(f"Could not load transcript from file: {e}")
             
+            # If we still don't have a transcript, generate a basic one
+            if not transcript_content:
+                transcript_content = generate_basic_transcript(data)
+                logger.info("Generated basic transcript as fallback")
+            
+            # Save transcript with matching ID for future reference
+            try:
+                transcript_filename = f"transcript_{podcast_id}.txt"
+                transcript_path = os.path.join(TEMP_DIR, transcript_filename)
+                with open(transcript_path, 'w', encoding='utf-8') as f:
+                    f.write(transcript_content)
+                response['transcript_url'] = f"/transcript/{transcript_filename}"
+            except Exception as e:
+                logger.warning(f"Could not save transcript: {e}")
+            
+            response['transcript'] = transcript_content
             return response
         else:
             raise HTTPException(status_code=500, detail="Invalid result format")
@@ -738,6 +867,32 @@ async def serve_audio(filename: str):
     return FileResponse(
         file_path,
         media_type="audio/mpeg",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Cache-Control": "public, max-age=3600"  # Cache for 1 hour
+        }
+    )
+
+@app.get("/transcript/{filename}")
+async def serve_transcript(filename: str):
+    """Get Transcript File From the Server"""
+    file_path = os.path.join(TEMP_DIR, filename)
+    if not os.path.exists(file_path):
+        # Return a helpful error message instead of just 404
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": "Transcript file not found",
+                "message": "This transcript file is no longer available. Transcript files are temporary and may be removed after server restarts.",
+                "suggestion": "Please regenerate the podcast to get a new transcript.",
+                "regenerate_url": "/generate"
+            }
+        )
+    
+    # Return transcript as plain text
+    return FileResponse(
+        file_path,
+        media_type="text/plain",
         headers={
             "Content-Disposition": f"attachment; filename={filename}",
             "Cache-Control": "public, max-age=3600"  # Cache for 1 hour

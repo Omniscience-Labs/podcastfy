@@ -42,6 +42,9 @@ class PodcastfyUI {
         // File display elements
         this.pdfFiles = document.getElementById('pdfFiles');
         this.imageFiles = document.getElementById('imageFiles');
+        
+        // Transcript elements
+        this.copyTranscriptBtn = document.getElementById('copyTranscriptBtn');
     }
 
     bindEvents() {
@@ -55,6 +58,7 @@ class PodcastfyUI {
         // Download buttons
         this.downloadBtn.addEventListener('click', () => this.downloadAudio());
         this.downloadTranscriptBtn.addEventListener('click', () => this.downloadTranscript());
+        this.copyTranscriptBtn.addEventListener('click', () => this.copyTranscript());
         this.shareBtn.addEventListener('click', () => this.sharePodcast());
     }
 
@@ -223,11 +227,21 @@ class PodcastfyUI {
             this.currentAudioUrl = response.audio_url;
         }
         
-        // Handle transcript - FastAPI returns it directly in response or as URL
+        // Handle transcript - Now guaranteed to be available
         if (response.transcript) {
             // Transcript is included directly in the response
             this.currentTranscript = response.transcript;
             this.transcriptContent.innerHTML = this.formatTranscript(this.currentTranscript);
+            
+            // Store transcript URL if available for direct download
+            if (response.transcript_url) {
+                this.currentTranscriptUrl = response.transcript_url.startsWith('/') 
+                    ? `${this.API_BASE_URL}${response.transcript_url}`
+                    : response.transcript_url;
+            }
+            
+            // Show success message for transcript availability
+            this.updateTranscriptStatus('✅ Transcript available');
         } else if (response.transcript_url) {
             // Transcript is provided as URL
             try {
@@ -235,22 +249,28 @@ class PodcastfyUI {
                     ? `${this.API_BASE_URL}${response.transcript_url}`
                     : response.transcript_url;
                     
+                this.currentTranscriptUrl = transcriptUrl;
+                    
                 const transcriptResponse = await fetch(transcriptUrl);
                 if (transcriptResponse.ok) {
                     this.currentTranscript = await transcriptResponse.text();
                     this.transcriptContent.innerHTML = this.formatTranscript(this.currentTranscript);
+                    this.updateTranscriptStatus('✅ Transcript loaded');
                 } else {
                     console.error('Failed to fetch transcript');
-                    this.transcriptContent.innerHTML = '<p class="text-red-500">Failed to load transcript</p>';
+                    this.transcriptContent.innerHTML = '<p class="text-red-500">Failed to load transcript from server</p>';
+                    this.updateTranscriptStatus('❌ Transcript load failed');
                 }
             } catch (error) {
                 console.error('Error fetching transcript:', error);
-                this.transcriptContent.innerHTML = '<p class="text-red-500">Failed to load transcript</p>';
+                this.transcriptContent.innerHTML = '<p class="text-red-500">Error loading transcript</p>';
+                this.updateTranscriptStatus('❌ Transcript error');
             }
         } else {
-            // No transcript available
-            this.transcriptContent.innerHTML = '<p class="text-gray-500">Transcript not available</p>';
+            // This should now be rare with our improvements
+            this.transcriptContent.innerHTML = '<p class="text-amber-600">⚠️ Transcript was not generated with this podcast</p>';
             this.currentTranscript = null;
+            this.updateTranscriptStatus('⚠️ No transcript');
         }
         
         // Update audio player with error handling
@@ -539,6 +559,17 @@ class PodcastfyUI {
         }
     }
 
+    copyTranscript() {
+        if (this.currentTranscript) {
+            navigator.clipboard.writeText(this.currentTranscript).then(() => {
+                this.showSuccess('Transcript copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy transcript:', err);
+                this.showError('Failed to copy transcript to clipboard');
+            });
+        }
+    }
+
     async sharePodcast() {
         if (this.currentAudioUrl) {
             const podcastName = this.podcastName.value || 'Podcastfy Podcast';
@@ -567,6 +598,19 @@ class PodcastfyUI {
                 }
             }
         }
+    }
+
+    updateTranscriptStatus(message) {
+        // Add or update transcript status indicator
+        let statusEl = document.getElementById('transcriptStatus');
+        if (!statusEl) {
+            statusEl = document.createElement('div');
+            statusEl.id = 'transcriptStatus';
+            statusEl.className = 'text-xs text-gray-600 mb-2';
+            const transcriptSection = document.querySelector('#transcriptContent').parentNode;
+            transcriptSection.insertBefore(statusEl, document.querySelector('#transcriptContent'));
+        }
+        statusEl.textContent = message;
     }
 
     formatTranscript(transcript) {

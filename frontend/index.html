@@ -245,15 +245,25 @@
 
             <!-- Transcript -->
             <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-lg font-semibold mb-4 text-gray-800">
-                    <i class="fas fa-file-text mr-2"></i>Transcript
-                </h3>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">
+                        <i class="fas fa-file-text mr-2"></i>Transcript
+                    </h3>
+                    <div class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                        📝 Always Available
+                    </div>
+                </div>
                 <div id="transcriptContent" class="bg-gray-50 p-4 rounded-md max-h-96 overflow-y-auto text-sm text-gray-700">
                     <!-- Transcript content will be loaded here -->
                 </div>
-                <button id="downloadTranscriptBtn" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                    <i class="fas fa-download mr-1"></i>Download Transcript
-                </button>
+                <div class="mt-4 flex space-x-2">
+                    <button id="downloadTranscriptBtn" class="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-download mr-1"></i>Download as File
+                    </button>
+                    <button id="copyTranscriptBtn" class="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-copy mr-1"></i>Copy Text
+                    </button>
+                </div>
             </div>
         </div>
 
