@@ -385,23 +385,37 @@ Host 2: Absolutely, and there are some fascinating points worth exploring furthe
         if not conversation_text:
             if url_content:
                 # Use the extracted content for a more relevant fallback
-                topic_name = topic or "the topics we found online"
-                preview = url_content[:200] + "..." if len(url_content) > 200 else url_content
-                conversation_text = f"""Host 1: Welcome to our podcast! Today we're exploring {topic_name}.
+                topic_name = topic or "the topics we found in the news"
+                
+                # Extract key points from the content for the conversation
+                key_points = []
+                sentences = url_content.split('.')[:10]  # First 10 sentences
+                for sentence in sentences:
+                    if len(sentence.strip()) > 30:  # Only meaningful sentences
+                        key_points.append(sentence.strip())
+                
+                # Create a conversation based on the actual content
+                conversation_text = f"""Host 1: Welcome to our podcast! Today we're discussing {topic_name}.
 
-Host 2: Thanks for tuning in! We've gathered some fascinating insights from our research.
+Host 2: Thanks for tuning in! We've gathered some important information that our listeners need to know about.
 
-Host 1: That's right. Here's what caught our attention: {preview}
+Host 1: That's right. Let me share what we've learned: {key_points[0] if key_points else 'There have been significant developments'}.
 
-Host 2: There are so many important aspects to consider here, and I think our audience will find this really valuable.
+Host 2: This is really important information. {key_points[1] if len(key_points) > 1 else 'The details are quite significant.'} 
 
-Host 1: Absolutely! The implications are quite significant, and it's definitely worth discussing in detail.
+Host 1: Absolutely. {key_points[2] if len(key_points) > 2 else 'There are several key aspects to consider here.'}
 
-Host 2: I couldn't agree more. This kind of content is exactly what makes our podcast so engaging and informative.
+Host 2: What stands out to me is how this impacts the community. {key_points[3] if len(key_points) > 3 else 'The implications are far-reaching.'}
 
-Host 1: And that wraps up today's discussion. Thanks for listening, and don't forget to subscribe!
+Host 1: I think our listeners will find this information valuable. {key_points[4] if len(key_points) > 4 else 'It\'s important to stay informed about these developments.'}
 
-Host 2: Until next time, keep exploring and stay curious!"""
+Host 2: Definitely. This is exactly the kind of content that makes our podcast relevant and informative.
+
+Host 1: And that wraps up today's discussion. Thanks for listening, and don't forget to subscribe for more important updates!
+
+Host 2: Until next time, stay informed and stay safe!"""
+                
+                logger.info("Using content-based fallback conversation")
             else:
                 topic_name = topic or "interesting topics" 
                 conversation_text = f"""Host 1: Welcome to our podcast! Today we're exploring {topic_name}.
@@ -419,7 +433,7 @@ Host 2: I couldn't agree more. It's topics like these that make our podcast so e
 Host 1: And that wraps up today's discussion. Thanks for listening, and don't forget to subscribe!
 
 Host 2: Until next time, keep exploring and stay curious!"""
-            logger.info("Using enhanced fallback conversation content")
+                logger.info("Using generic fallback conversation content")
         
         # Generate audio using edge-tts (bypasses LangChain TTS)
         if tts_model == "edge":
