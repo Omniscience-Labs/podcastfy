@@ -41,7 +41,7 @@ class PodcastfyOperatorTool:
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         
-        # Determine if we're using Flask (localhost) or FastAPI (render) endpoints
+        # Use FastAPI endpoints by default, Flask only for localhost
         self.is_flask = "localhost" in base_url or "127.0.0.1" in base_url
         self.health_endpoint = "/api/health" if self.is_flask else "/health"
         self.generate_endpoint = "/api/generate" if self.is_flask else "/generate"

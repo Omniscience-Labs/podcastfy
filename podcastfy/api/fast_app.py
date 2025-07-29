@@ -7,60 +7,71 @@ with configuration management and temporary file handling.
 
 # Fix Pydantic issues before importing LangChain components
 def fix_pydantic_issues():
-    """Fix Pydantic issues with LangChain components"""
+    """Comprehensive fix for Pydantic issues with LangChain components"""
     try:
         import pydantic
         from pydantic import BaseModel
-        from typing import Any, List, Dict, Optional
+        from typing import Any, List, Dict, Optional, Callable
         import warnings
+        import sys
         
         # Suppress Pydantic warnings
         warnings.filterwarnings("ignore", category=pydantic.warnings.PydanticDeprecatedSince20)
         
-        # Create missing types that Pydantic needs
-        if not hasattr(pydantic, 'BaseCache'):
-            class BaseCache(BaseModel):
-                pass
-            pydantic.BaseCache = BaseCache
+        # Create all missing types that Pydantic/LangChain needs
+        missing_types = {
+            'BaseCache': type('BaseCache', (BaseModel,), {}),
+            'Callbacks': List[Callable[[Any], Any]],
+            'BaseCallbackHandler': type('BaseCallbackHandler', (BaseModel,), {}),
+            'BaseCallbackManager': type('BaseCallbackManager', (BaseModel,), {}),
+        }
         
-        # Create missing Callbacks type if needed
-        try:
-            from typing import TYPE_CHECKING
-            if TYPE_CHECKING:
-                from typing import Callable
-                Callbacks = List[Callable[[Any], Any]]
-            else:
-                Callbacks = List[Any]
-        except ImportError:
-            Callbacks = List[Any]
+        # Add missing types to pydantic module
+        for name, type_def in missing_types.items():
+            if not hasattr(pydantic, name):
+                setattr(pydantic, name, type_def)
         
-        # Add to globals if needed
+        # Also add to builtins for global access
         import builtins
-        if not hasattr(builtins, 'Callbacks'):
-            builtins.Callbacks = Callbacks
+        for name, type_def in missing_types.items():
+            if not hasattr(builtins, name):
+                setattr(builtins, name, type_def)
         
-        # Try to rebuild LangChain models after importing them
-        models_to_rebuild = [
-            ('langchain_community.chat_models', 'ChatLiteLLM'),
-            ('langchain_google_genai', 'ChatGoogleGenerativeAI'),
-            ('langchain_core.language_models.chat_models', 'BaseChatModel'),
+        # Pre-import and fix LangChain modules before they cause issues
+        langchain_modules = [
+            'langchain_core.language_models.chat_models',
+            'langchain_core.callbacks.base',
+            'langchain_core.callbacks.manager',
+            'langchain_community.chat_models.litellm',
+            'langchain_google_genai.chat_models',
         ]
         
-        for module_name, class_name in models_to_rebuild:
+        for module_name in langchain_modules:
             try:
-                module = __import__(module_name, fromlist=[class_name])
-                model_class = getattr(module, class_name, None)
-                if model_class and hasattr(model_class, 'model_rebuild'):
-                    model_class.model_rebuild()
+                # Import the module
+                if module_name not in sys.modules:
+                    __import__(module_name)
+                
+                # Try to rebuild any models in the module
+                module = sys.modules.get(module_name)
+                if module:
+                    for attr_name in dir(module):
+                        attr = getattr(module, attr_name, None)
+                        if (attr and hasattr(attr, 'model_rebuild') and 
+                            hasattr(attr, '__bases__') and 
+                            any(base.__name__ == 'BaseModel' for base in attr.__bases__)):
+                            try:
+                                attr.model_rebuild()
+                            except Exception:
+                                pass
             except Exception:
-                # Silently continue if rebuild fails
-                pass
+                continue
                 
     except Exception:
-        # If all else fails, just continue
+        # If all else fails, just continue - we'll handle errors in the endpoint
         pass
 
-# Apply the fix before any other imports
+# Apply the comprehensive fix
 fix_pydantic_issues()
 
 from fastapi import FastAPI, HTTPException
@@ -198,8 +209,9 @@ async def generate_podcast_endpoint(data: dict):
         # print(conversation_config)
         
 
-        # Generate podcast - use gemini model to avoid ChatLiteLLM Pydantic issues
+        # Generate podcast with comprehensive error handling
         try:
+            # First attempt: Use Gemini (preferred)
             result = generate_podcast(
                 urls=urls,
                 text=text,
@@ -207,24 +219,50 @@ async def generate_podcast_endpoint(data: dict):
                 conversation_config=conversation_config,
                 tts_model=tts_model,
                 longform=bool(data.get('is_long_form', False)),
-                llm_model_name="gemini-1.5-pro-latest",  # Use Gemini instead of default
+                llm_model_name="gemini-1.5-pro-latest",
                 api_key_label="GEMINI_API_KEY"
             )
         except Exception as e:
-            # If there are still Pydantic issues, try with OpenAI
-            try:
-                result = generate_podcast(
-                    urls=urls,
-                    text=text,
-                    topic=topic,
-                    conversation_config=conversation_config,
-                    tts_model=tts_model,
-                    longform=bool(data.get('is_long_form', False)),
-                    llm_model_name="gpt-3.5-turbo",
-                    api_key_label="OPENAI_API_KEY"
-                )
-            except Exception as e2:
-                raise HTTPException(status_code=500, detail=f"Failed with both Gemini and OpenAI: {str(e2)}")
+            error_msg = str(e).lower()
+            
+            # Check if it's a Pydantic/LangChain issue
+            if any(keyword in error_msg for keyword in ['pydantic', 'not fully defined', 'model_rebuild', 'basecache', 'callbacks']):
+                try:
+                    # Re-apply Pydantic fix and try again
+                    fix_pydantic_issues()
+                    
+                    # Try with OpenAI as fallback
+                    result = generate_podcast(
+                        urls=urls,
+                        text=text,
+                        topic=topic,
+                        conversation_config=conversation_config,
+                        tts_model=tts_model,
+                        longform=bool(data.get('is_long_form', False)),
+                        llm_model_name="gpt-3.5-turbo",
+                        api_key_label="OPENAI_API_KEY"
+                    )
+                except Exception as e2:
+                    # If both fail, provide helpful error message
+                    raise HTTPException(
+                        status_code=500, 
+                        detail=f"LangChain compatibility issue. Please try again or contact support. Original error: {str(e)}"
+                    )
+            else:
+                # For non-Pydantic errors, try OpenAI fallback
+                try:
+                    result = generate_podcast(
+                        urls=urls,
+                        text=text,
+                        topic=topic,
+                        conversation_config=conversation_config,
+                        tts_model=tts_model,
+                        longform=bool(data.get('is_long_form', False)),
+                        llm_model_name="gpt-3.5-turbo",
+                        api_key_label="OPENAI_API_KEY"
+                    )
+                except Exception as e2:
+                    raise HTTPException(status_code=500, detail=f"Generation failed: {str(e2)}")
                 
         # Handle the result
         if isinstance(result, str) and os.path.isfile(result):

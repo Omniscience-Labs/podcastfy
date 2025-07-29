@@ -1,11 +1,12 @@
 services:
   - type: web
     name: podcastfy-backend
-    runtime: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "bash backend/start_flask.sh"
+    runtime: docker
+    buildCommand: ""
+    startCommand: ""
     plan: free
-    pythonVersion: 3.11
+    dockerfilePath: ./Dockerfile_api
+    dockerContext: .
     envVars:
       - key: GEMINI_API_KEY
         sync: false
@@ -21,5 +22,3 @@ services:
         value: "en"
       - key: LOG_LEVEL
         value: "INFO"
-      - key: PORT
-        value: "8000"
