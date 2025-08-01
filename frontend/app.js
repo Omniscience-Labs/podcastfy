@@ -172,7 +172,7 @@ class PodcastfyUI {
             }
             
             // Make the API call to Render FastAPI backend
-            const response = await fetch(`${this.API_BASE_URL}/generate`, {
+            const response = await fetch(`${this.API_BASE_URL}/api/generate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
