@@ -6,7 +6,7 @@ class PodcastfyUI {
         this.currentAudioUrl = null;
         this.currentTranscript = null;
         // API base URL - point to your Render backend
-        this.API_BASE_URL = 'https://podcastfy-8x6a.onrender.com';
+        this.API_BASE_URL = 'https://podcastfy-omni.onrender.com';
     }
 
     initializeElements() {
