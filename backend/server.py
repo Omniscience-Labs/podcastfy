@@ -70,6 +70,7 @@ app = Flask(__name__)
 
 # Configure CORS for frontend
 CORS(app, origins=[
+    "https://podcastfy-azure.vercel.app",  # Current Production Vercel URL
     "https://podcastfy-opxm6bilx-latent-labs1.vercel.app",  # Production Vercel URL
     "https://podcastfy-3iyy3vo66-latent-labs1.vercel.app",  # Preview Vercel URL
     "http://localhost:3000",  # Local development
