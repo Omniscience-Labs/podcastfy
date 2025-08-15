@@ -30,14 +30,19 @@ COPY . /app
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH="/app"
 
-# Verify installations
+# Verify installations and test pydub patch
 RUN echo "Verifying installations:" && \
     echo "Ubuntu version:" && cat /etc/os-release && \
     echo "FFmpeg version:" && ffmpeg -version && \
     echo "Python version:" && python3 --version && \
     echo "Pip version:" && pip --version && \
+    echo "Testing pydub patch:" && python3 -c "from backend.pydub_patch import *; print('Pydub patch loaded successfully')" && \
     echo "Installed packages:" && pip list
 
+# Expose port
+EXPOSE 8000
+
 # Command to run when container starts
-CMD ["uvicorn", "podcastfy.api.fast_app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python3", "backend/server.py"]

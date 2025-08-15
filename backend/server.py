@@ -194,7 +194,7 @@ def generate_podcast_api():
             urls=urls_list if urls_list else None,
             text=text_content,
             topic=topic_content,
-            tts_model=data.get('tts_model', 'en-US-Neural2-F'),
+            tts_model=data.get('tts_model', 'edge'),
             llm_model_name="gpt-3.5-turbo",  # Use OpenAI instead of Gemini
             api_key_label="OPENAI_API_KEY"   # Use OpenAI API key
         )
