@@ -1,5 +1,63 @@
 """Google Cloud Text-to-Speech provider implementation."""
 
+# Apply audioop patch before importing pydub
+import sys
+try:
+    from backend.pydub_patch import *
+except ImportError:
+    try:
+        from daytona_ui.pydub_patch import *
+    except ImportError:
+        # Apply working audioop patch inline
+        import warnings
+        import types
+        import array
+        
+        try:
+            import audioop
+        except ImportError:
+            class WorkingAudioop:
+                @staticmethod
+                def lin2lin(fragment, width, newwidth):
+                    if width == newwidth:
+                        return fragment
+                    return fragment  # Simplified fallback
+                
+                @staticmethod 
+                def ratecv(fragment, width, nchannels, inrate, outrate, state, weightA=1, weightB=0):
+                    if inrate == outrate:
+                        return fragment, state
+                    return fragment, state  # Simplified fallback
+                
+                @staticmethod
+                def mul(fragment, width, factor):
+                    return fragment  # Simplified fallback
+                
+                def __getattr__(self, name):
+                    def safe_fallback(*args, **kwargs):
+                        return args[0] if args else b''
+                    return safe_fallback
+            
+            # Create the module
+            audioop = types.ModuleType('audioop')
+            working_audioop = WorkingAudioop()
+            audioop.lin2lin = working_audioop.lin2lin
+            audioop.ratecv = working_audioop.ratecv
+            audioop.mul = working_audioop.mul
+            
+            # Add fallbacks for other methods
+            for attr in ['add', 'bias', 'cross', 'findfactor', 'findmax', 'getsample', 
+                         'max', 'maxpp', 'minmax', 'reverse', 'rms', 'tomono', 'tostereo']:
+                setattr(audioop, attr, getattr(working_audioop, attr))
+            
+            sys.modules['audioop'] = audioop
+
+        # Handle pyaudioop
+        try:
+            import pyaudioop
+        except ImportError:
+            sys.modules['pyaudioop'] = audioop
+
 from google.cloud import texttospeech_v1beta1
 from typing import List
 from ..base import TTSProvider
