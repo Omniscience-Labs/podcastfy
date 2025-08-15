@@ -18,10 +18,10 @@ class ElevenLabsTTS(TTSProvider):
         
     def generate_audio(self, text: str, voice: str, model: str, voice2: str = None) -> bytes:
         """Generate audio using ElevenLabs API."""
-        audio = self.client.generate(
+        audio = self.client.text_to_speech.convert(
             text=text,
-            voice=voice,
-            model=model
+            voice_id=voice,
+            model_id=model
         )
         return b''.join(chunk for chunk in audio if chunk)
         

@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 pydub>=0.25.1
 openai
-elevenlabs
+elevenlabs>=1.12.0
 google-generativeai
 ffmpeg-python
 python-dotenv
