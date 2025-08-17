@@ -210,7 +210,11 @@ class TextToSpeech:
 
         # Get API key from config if not provided
         if not api_key:
-            api_key = getattr(self.config, f"{model.upper().replace('MULTI', '')}_API_KEY", None)
+            # Special case for Azure which uses AZURE_SPEECH_KEY instead of AZURE_API_KEY
+            if model.lower() == 'azure':
+                api_key = getattr(self.config, "AZURE_SPEECH_KEY", None)
+            else:
+                api_key = getattr(self.config, f"{model.upper().replace('MULTI', '')}_API_KEY", None)
 
         # Initialize provider using factory
         self.provider = TTSProviderFactory.create(
