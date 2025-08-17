@@ -22,14 +22,14 @@ max_num_chunks: 8 # maximum number of rounds of discussions in longform
 min_chunk_size: 600 # minimum number of characters to generate a round of discussion in longform
 
 text_to_speech:
-  default_tts_model: "openai"
+  default_tts_model: "elevenlabs"
   output_directories:
     transcripts: "./data/transcripts"
     audio: "./data/audio"
   elevenlabs:
     default_voices:
-      question: "Chris"
-      answer: "Jessica"
+      question: "iP95p4xoKVk53GoZ742B"
+      answer: "cgSgspJ2msm6clMCkdW9"  
     model: "eleven_multilingual_v2"
   openai:
     default_voices:
