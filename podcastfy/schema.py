@@ -16,6 +16,7 @@ class TTSModel(str, Enum):
     OPENAI = "openai"
     ELEVENLABS = "elevenlabs"
     EDGE = "edge"
+    AZURE = "azure"
     GEMINI = "gemini"
     GEMINIMULTI = "geminimulti"
 

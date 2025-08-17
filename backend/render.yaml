@@ -14,6 +14,8 @@ services:
         sync: false
       - key: ELEVENLABS_API_KEY
         sync: false
+      - key: AZURE_SPEECH_KEY
+        sync: false
       - key: LANGCHAIN_TRACING_V2
         value: "False"
       - key: DEFAULT_VOICE
@@ -24,3 +26,5 @@ services:
         value: "INFO"
       - key: PORT
         value: "8000"
+      - key: AZURE_SPEECH_REGION
+        value: "eastus"
