@@ -150,19 +150,19 @@ except ImportError as e:
         def __getattr__(self, name):
             """Fallback for other audioop methods"""
             def safe_fallback(*args, **kwargs):
-                    # Return reasonable defaults for common operations
-                    if name in ['add', 'bias', 'reverse']:
-                        return args[0] if args else b''
-                    elif name in ['max', 'minmax']:
-                        return 0
-                    elif name == 'cross':
-                        return len(args[0]) if args else 0
-                    elif name in ['tomono', 'tostereo']:
-                        return args[0] if args else b''
-                    else:
-                        warnings.warn(f"audioop.{name} fallback used", RuntimeWarning)
-                        return args[0] if args else b''
-                return safe_fallback
+                # Return reasonable defaults for common operations
+                if name in ['add', 'bias', 'reverse']:
+                    return args[0] if args else b''
+                elif name in ['max', 'minmax']:
+                    return 0
+                elif name == 'cross':
+                    return len(args[0]) if args else 0
+                elif name in ['tomono', 'tostereo']:
+                    return args[0] if args else b''
+                else:
+                    warnings.warn(f"audioop.{name} fallback used", RuntimeWarning)
+                    return args[0] if args else b''
+            return safe_fallback
         
         # Create the module
         audioop = types.ModuleType('audioop')
