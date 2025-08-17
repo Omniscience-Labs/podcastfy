@@ -31,7 +31,7 @@ class PodcastfyOperatorTool:
     while also supporting standalone usage.
     """
     
-    def __init__(self, base_url: str = "https://podcastfy-8x6a.onrender.com"):
+    def __init__(self, base_url: str = "https://varnica-dev-podcastfy.onrender.com"):
         """
         Initialize the Podcastfy tool
         

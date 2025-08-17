@@ -8,11 +8,11 @@
     "tags": ["podcast", "ai", "audio", "content", "generation"],
     "icon": "🎙️",
     "api": {
-      "base_url": "https://podcastfy-8x6a.onrender.com",
+      "base_url": "https://varnica-dev-podcastfy.onrender.com",
       "endpoints": {
         "generate": {
           "method": "POST",
-          "path": "/generate",
+          "path": "/api/generate",
           "description": "Generate a podcast from content sources",
           "parameters": {
             "urls": {
@@ -61,7 +61,7 @@
         },
         "health": {
           "method": "GET",
-          "path": "/health",
+          "path": "/api/health",
           "description": "Check service health"
         }
       }
