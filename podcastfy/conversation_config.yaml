@@ -40,6 +40,11 @@ text_to_speech:
     default_voices:
       question: "en-US-JennyNeural"
       answer: "en-US-EricNeural"
+  azure:
+    default_voices:
+      question: "en-US-JennyNeural"
+      answer: "en-US-GuyNeural"
+    model: "neural"
   gemini:
     default_voices:
       question: "en-US-Journey-D"
