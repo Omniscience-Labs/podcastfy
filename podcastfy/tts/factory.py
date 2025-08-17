@@ -5,7 +5,6 @@ from .base import TTSProvider
 from .providers.elevenlabs import ElevenLabsTTS
 from .providers.openai import OpenAITTS
 from .providers.edge import EdgeTTS
-from .providers.azure import AzureTTS
 from .providers.gemini import GeminiTTS
 from .providers.geminimulti import GeminiMultiTTS
 class TTSProviderFactory:
@@ -15,7 +14,6 @@ class TTSProviderFactory:
         'elevenlabs': ElevenLabsTTS,
         'openai': OpenAITTS,
         'edge': EdgeTTS,
-        'azure': AzureTTS,
         'gemini': GeminiTTS,
         'geminimulti': GeminiMultiTTS
     }
