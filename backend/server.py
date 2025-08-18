@@ -407,6 +407,10 @@ def serve_audio(filename):
             Path("/opt/render/project/src/data/audio") / filename,  # Render absolute path
             PROJECT_ROOT / "data" / "audio" / filename,  # Project root path
             Path.cwd() / "data" / "audio" / filename,  # Current working directory
+            Path("/app/data/audio") / filename,  # Docker path
+            Path("/tmp/audio") / filename,  # Temp path
+            Path("data/audio") / filename,  # Simple relative
+            BACKEND_DIR / "data" / "audio" / filename,  # Backend relative
         ]
         
         for audio_path in possible_paths:
