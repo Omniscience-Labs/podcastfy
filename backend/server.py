@@ -400,11 +400,27 @@ def generate_podcast_api():
 def serve_audio(filename):
     """Serve generated audio files"""
     try:
-        audio_path = AUDIO_DIR / filename
-        if audio_path.exists():
-            return send_file(audio_path, mimetype='audio/mpeg')
-        else:
-            return jsonify({'error': 'Audio file not found'}), 404
+        # Try multiple possible audio file locations
+        possible_paths = [
+            AUDIO_DIR / filename,  # Original path
+            Path("./data/audio") / filename,  # Relative to working directory
+            Path("/opt/render/project/src/data/audio") / filename,  # Render absolute path
+            PROJECT_ROOT / "data" / "audio" / filename,  # Project root path
+            Path.cwd() / "data" / "audio" / filename,  # Current working directory
+        ]
+        
+        for audio_path in possible_paths:
+            if audio_path.exists():
+                logger.info(f"✅ Found audio file at: {audio_path}")
+                return send_file(audio_path, mimetype='audio/mpeg')
+        
+        # Log all paths we tried for debugging
+        logger.error(f"❌ Audio file not found. Tried paths:")
+        for path in possible_paths:
+            logger.error(f"   - {path} (exists: {path.exists()})")
+        
+        return jsonify({'error': 'Audio file not found'}), 404
+        
     except Exception as e:
         logger.error(f"Error serving audio: {str(e)}")
         return jsonify({'error': 'Error serving audio file'}), 500
@@ -413,11 +429,27 @@ def serve_audio(filename):
 def serve_transcript(filename):
     """Serve generated transcript files"""
     try:
-        transcript_path = TRANSCRIPT_DIR / filename
-        if transcript_path.exists():
-            return send_file(transcript_path, mimetype='text/plain')
-        else:
-            return jsonify({'error': 'Transcript file not found'}), 404
+        # Try multiple possible transcript file locations
+        possible_paths = [
+            TRANSCRIPT_DIR / filename,  # Original path
+            Path("./data/transcripts") / filename,  # Relative to working directory
+            Path("/opt/render/project/src/data/transcripts") / filename,  # Render absolute path
+            PROJECT_ROOT / "data" / "transcripts" / filename,  # Project root path
+            Path.cwd() / "data" / "transcripts" / filename,  # Current working directory
+        ]
+        
+        for transcript_path in possible_paths:
+            if transcript_path.exists():
+                logger.info(f"✅ Found transcript file at: {transcript_path}")
+                return send_file(transcript_path, mimetype='text/plain')
+        
+        # Log paths we tried
+        logger.error(f"❌ Transcript file not found. Tried paths:")
+        for path in possible_paths:
+            logger.error(f"   - {path} (exists: {path.exists()})")
+            
+        return jsonify({'error': 'Transcript file not found'}), 404
+        
     except Exception as e:
         logger.error(f"Error serving transcript: {str(e)}")
         return jsonify({'error': 'Error serving transcript file'}), 500
