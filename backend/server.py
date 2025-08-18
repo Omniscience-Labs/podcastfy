@@ -423,7 +423,19 @@ def serve_audio(filename):
         for path in possible_paths:
             logger.error(f"   - {path} (exists: {path.exists()})")
         
-        return jsonify({'error': 'Audio file not found'}), 404
+        # Also log current working directory and environment info
+        logger.error(f"Current working directory: {Path.cwd()}")
+        logger.error(f"PROJECT_ROOT: {PROJECT_ROOT}")
+        logger.error(f"AUDIO_DIR: {AUDIO_DIR}")
+        logger.error(f"BACKEND_DIR: {BACKEND_DIR}")
+        
+        return jsonify({
+            'error': 'Audio file not found',
+            'filename': filename,
+            'tried_paths': [str(p) for p in possible_paths],
+            'current_dir': str(Path.cwd()),
+            'audio_dir': str(AUDIO_DIR)
+        }), 404
         
     except Exception as e:
         logger.error(f"Error serving audio: {str(e)}")
