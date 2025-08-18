@@ -95,7 +95,7 @@ class OmniPodcastfyTool:
                             "tts_model": {
                                 "type": "string",
                                 "enum": ["edge", "openai", "elevenlabs", "gemini"],
-                                "default": "edge",
+                                "default": "openai",
                                 "description": "Text-to-speech model to use"
                             },
                             "conversation_style": {
